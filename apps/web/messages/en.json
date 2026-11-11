@@ -221,7 +221,7 @@
     "guide_has_access": "The guide has access with another account. Remove that access from Team before sending a new one.",
     "email_failed": "We could not send the email. Try again in a few minutes.",
     "guide_email_required": "Add a valid email to the guide to send access.",
-    "guide_inactive": "The guide is inactive. Reactivate them to send access."
+    "guide_inactive": "The guide is inactive. Reactivate them first."
   },
   "customers": {
     "title": "Customers",
@@ -277,6 +277,193 @@
       "phoneInvalid": "Enter a valid phone: digits, spaces and the signs + ( ) - .",
       "localeInvalid": "Pick a language from the list.",
       "customerInvalid": "The customer is not valid."
+    }
+  },
+  "tours": {
+    "title": "Tours",
+    "description": "The tours the operator sells, with their prices, weekly schedules and departures.",
+    "new": "New tour",
+    "newTitle": "New tour",
+    "newDescription": "After creating it you can add its prices and weekly schedules.",
+    "back": "Back to tours",
+    "edit": "Tour details",
+    "create": "Create tour",
+    "save": "Save changes",
+    "saved": "Changes saved.",
+    "none": "—",
+    "empty": "No tours yet.",
+    "showArchived": "Show archived tours too",
+    "hideArchived": "Hide archived tours",
+    "archivedNotice": "This tour is archived: it takes no new departures or reservations. Existing data is unchanged.",
+    "minutes": "{count, plural, one {# minute} other {# minutes}}",
+    "fields": {
+      "name": "Name",
+      "description": "Description",
+      "duration": "Duration",
+      "durationMinutes": "Duration in minutes",
+      "durationHint": "For example, 180 for three hours.",
+      "defaultCapacity": "Capacity",
+      "defaultCapacityHint": "Seats per departure. Each departure copies this number when it is created.",
+      "meetingPoint": "Meeting point",
+      "directPrice": "Direct price",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Active",
+      "archived": "Archived"
+    },
+    "channels": {
+      "direct": "Direct",
+      "getyourguide": "GetYourGuide",
+      "viator": "Viator",
+      "whatsapp": "WhatsApp"
+    },
+    "prices": {
+      "title": "Prices per channel",
+      "description": "Price per person. Only administration and accounting see prices.",
+      "required": "Required to book",
+      "missing": "No price",
+      "amount": "Price",
+      "currency": "Currency",
+      "save": "Save price",
+      "saved": "Price saved.",
+      "formLabel": "Price for channel {channel}"
+    },
+    "schedules": {
+      "title": "Weekly schedules",
+      "description": "Local times in {timezone}. Departures of these schedules are created with the first reservation.",
+      "empty": "No schedules yet.",
+      "weekday": "Day",
+      "startTime": "Start time",
+      "capacity": "Capacity",
+      "validity": "Valid",
+      "actions": "Actions",
+      "defaultCapacity": "{count} (the tour's)",
+      "range": "From {from} to {to}",
+      "openEnded": "From {from}",
+      "remove": "Remove",
+      "removeConfirm": "Remove this schedule? Departures already created do not change.",
+      "add": "Add schedule",
+      "added": "Schedule added.",
+      "capacityOverride": "Capacity (optional)",
+      "capacityOverrideHint": "Empty uses the tour's capacity.",
+      "validFrom": "Valid from",
+      "validTo": "Valid until (optional)",
+      "validToHint": "Empty has no end date."
+    },
+    "slots": {
+      "title": "Departures by date",
+      "description": "Schedules of the chosen day and departures already created, with the seats available.",
+      "date": "Date",
+      "show": "Show",
+      "empty": "No schedules or departures on that day.",
+      "notCreated": "Not created",
+      "open": "Open departure",
+      "create": "Create departure"
+    },
+    "upcoming": {
+      "title": "Upcoming departures",
+      "empty": "No departures in the next two weeks."
+    },
+    "archive": {
+      "title": "Archive",
+      "activeDescription": "Archiving hides the tour from booking lists and blocks new departures and reservations. Existing data is unchanged.",
+      "archivedDescription": "Restoring it shows it again for new departures and reservations.",
+      "archive": "Archive tour",
+      "restore": "Restore tour",
+      "confirm": "Archive {name}? It will take no new departures or reservations."
+    },
+    "validation": {
+      "nameRequired": "Enter the name.",
+      "nameTooLong": "Use at most 120 characters.",
+      "descriptionTooLong": "Use at most 2000 characters.",
+      "durationInvalid": "Enter the minutes, a whole number from 1 to 43200.",
+      "capacityInvalid": "Enter a whole number from 1 to 10000.",
+      "meetingPointTooLong": "Use at most 300 characters.",
+      "idInvalid": "The record is not valid.",
+      "channelInvalid": "The channel is not valid.",
+      "currencyInvalid": "Choose a currency from the list.",
+      "priceInvalid": "Enter a valid price, for example 125.50.",
+      "weekdayInvalid": "Choose a day from the list.",
+      "timeInvalid": "Enter a valid time.",
+      "dateInvalid": "Enter a valid date.",
+      "validToBeforeFrom": "The end date cannot be before the start date.",
+      "scheduleTaken": "There is already a schedule on that day at that time."
+    }
+  },
+  "departures": {
+    "title": "Departures",
+    "description": "Departures by date with their capacity and sold seats. Local dates and times in {timezone}.",
+    "new": "New departure",
+    "newDescription": "A departure outside the weekly schedules, or created early to assign a guide before the first reservation.",
+    "noTours": "There are no active tours. Create one in Tours first.",
+    "empty": "No departures match these filters.",
+    "hasMore": "Showing the first {count}. Narrow the dates to see others.",
+    "back": "Back to departures",
+    "details": "Departure details",
+    "edit": "Edit departure",
+    "none": "—",
+    "full": "Full",
+    "seats": "{booked} of {capacity}",
+    "filters": {
+      "label": "Filter departures",
+      "from": "From",
+      "to": "To",
+      "tour": "Tour",
+      "allTours": "All tours",
+      "status": "Status",
+      "allStatuses": "All statuses",
+      "submit": "Filter"
+    },
+    "fields": {
+      "date": "Date",
+      "startTime": "Time",
+      "tour": "Tour",
+      "status": "Status",
+      "seats": "Sold",
+      "available": "Available",
+      "guide": "Guide",
+      "capacity": "Capacity",
+      "origin": "Origin",
+      "startsAt": "Starts"
+    },
+    "status": {
+      "scheduled": "Scheduled",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "origin": {
+      "schedule": "Weekly schedule",
+      "ad_hoc": "Created by hand"
+    },
+    "form": {
+      "create": "Create departure",
+      "save": "Save changes",
+      "saved": "Changes saved.",
+      "chooseTour": "Choose a tour",
+      "noGuide": "No guide",
+      "capacityHint": "Empty uses the tour's capacity.",
+      "capacityBelowBooked": "{count, plural, one {# seat is} other {# seats are}} sold: the capacity cannot be lower.",
+      "inactiveGuide": "{name} (inactive)"
+    },
+    "lifecycle": {
+      "title": "Departure status",
+      "close": "Close departure",
+      "closeDescription": "Closing the departure blocks new reservations. Existing reservations stay.",
+      "closeConfirm": "Close the departure? It cannot be reopened.",
+      "cancel": "Cancel departure",
+      "cancelDescription": "Cancelling the departure also cancels its active reservations. It cannot be undone.",
+      "cancelConfirm": "Cancel the departure and its active reservations? It cannot be undone.",
+      "cancelledNotice": "The departure is cancelled. Its slot is free for a new departure."
+    },
+    "validation": {
+      "tourRequired": "Choose a tour.",
+      "dateInvalid": "Enter a valid date.",
+      "timeInvalid": "Enter a valid time.",
+      "capacityInvalid": "Enter a whole number from 1 to 10000.",
+      "guideInvalid": "Choose a guide from the list.",
+      "idInvalid": "The record is not valid.",
+      "slotTaken": "This tour already has a departure on that date and time."
     }
   }
 }

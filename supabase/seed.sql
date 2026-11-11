@@ -60,3 +60,28 @@ values
   ('9a200000-0000-4000-8000-00000000000a', '0a000000-0000-4000-8000-00000000000a', 'Guía A sin cuenta', 'guia-a2@cupo.test', null, '{es}', '{}', null),
   ('9b100000-0000-4000-8000-00000000000b', '0b000000-0000-4000-8000-00000000000b', 'Guía B', 'guia-b@cupo.test', null, '{es}', '{pesca}', 6)
 on conflict (id) do nothing;
+
+-- ============================================================================
+-- tours (u5)
+-- ============================================================================
+-- one tour per operator a and b with a direct price and one weekly schedule
+-- (tuesday 08:00 for a, saturday 09:00 for b). departures are created by the
+-- tests and the app (their dates are relative to today).
+
+insert into public.tours (id, operator_id, name, description, duration_minutes, default_capacity, meeting_point)
+values
+  ('7a100000-0000-4000-8000-00000000000a', '0a000000-0000-4000-8000-00000000000a', 'Tour A', 'Caminata por el bosque nuboso.', 180, 12, 'Plaza central'),
+  ('7b100000-0000-4000-8000-00000000000b', '0b000000-0000-4000-8000-00000000000b', 'Tour B', 'Pesca en la bahía.', 240, 8, 'Muelle')
+on conflict (id) do nothing;
+
+insert into public.tour_prices (operator_id, tour_id, channel, price_minor, currency)
+values
+  ('0a000000-0000-4000-8000-00000000000a', '7a100000-0000-4000-8000-00000000000a', 'direct', 12500, 'USD'),
+  ('0b000000-0000-4000-8000-00000000000b', '7b100000-0000-4000-8000-00000000000b', 'direct', 150000, 'MXN')
+on conflict (operator_id, tour_id, channel) do nothing;
+
+insert into public.tour_schedules (operator_id, tour_id, weekday, start_time, valid_from)
+values
+  ('0a000000-0000-4000-8000-00000000000a', '7a100000-0000-4000-8000-00000000000a', 2, '08:00', '2026-01-01'),
+  ('0b000000-0000-4000-8000-00000000000b', '7b100000-0000-4000-8000-00000000000b', 6, '09:00', '2026-01-01')
+on conflict (operator_id, tour_id, weekday, start_time) do nothing;

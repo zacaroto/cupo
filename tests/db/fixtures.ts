@@ -42,6 +42,38 @@ export const GUIDES = {
   b1: { id: "9b100000-0000-4000-8000-00000000000b", operator: "b", name: "Guía B", email: "guia-b@cupo.test" },
 } as const satisfies Record<GuideKey, { id: string; operator: OperatorKey; name: string; email: string }>;
 
+export type TourKey = "a1" | "b1";
+
+/** Tours seeded by supabase/seed.sql (keep the uuids in sync), each with a direct price and one weekly schedule. */
+export const TOURS = {
+  a1: {
+    id: "7a100000-0000-4000-8000-00000000000a",
+    operator: "a",
+    name: "Tour A",
+    defaultCapacity: 12,
+    directPrice: { priceMinor: 12500, currency: "USD" },
+    schedule: { weekday: 2, startTime: "08:00" },
+  },
+  b1: {
+    id: "7b100000-0000-4000-8000-00000000000b",
+    operator: "b",
+    name: "Tour B",
+    defaultCapacity: 8,
+    directPrice: { priceMinor: 150000, currency: "MXN" },
+    schedule: { weekday: 6, startTime: "09:00" },
+  },
+} as const satisfies Record<
+  TourKey,
+  {
+    id: string;
+    operator: OperatorKey;
+    name: string;
+    defaultCapacity: number;
+    directPrice: { priceMinor: number; currency: string };
+    schedule: { weekday: number; startTime: string };
+  }
+>;
+
 export type SeedUserSpec = {
   email: string;
   fullName: string;

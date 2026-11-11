@@ -17,6 +17,7 @@ export const TYPED_ERRORS = [
   "forbidden_transition",
   "price_missing",
   "not_found",
+  "guide_inactive",
 ] as const;
 
 export type TypedErrorName = (typeof TYPED_ERRORS)[number];
@@ -49,7 +50,7 @@ export const AUTH_ERRORS = [
  * single state for every invite or sign-in email failure, whether the email
  * had an account or not (R9: responses never reveal it).
  */
-export const ACCESS_ERRORS = ["email_failed", "guide_email_required", "guide_inactive"] as const;
+export const ACCESS_ERRORS = ["email_failed", "guide_email_required"] as const;
 
 export const ACTION_ERRORS = [...new Set([...GENERIC_ERRORS, ...TYPED_ERRORS, ...AUTH_ERRORS, ...ACCESS_ERRORS])] as const;
 

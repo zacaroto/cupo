@@ -145,6 +145,110 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"tour_departures": {
+                  Row: {
+                    "capacity": number,"created_at": string,"date": string,"guide_id": string | null,"id": string,"operator_id": string,"origin": Database["public"]['Enums']["departure_origin"],"seats_booked": number,"start_time": string,"starts_at": string,"status": Database["public"]['Enums']["departure_status"],"tour_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "capacity": number,"created_at"?: string,"date": string,"guide_id"?: string | null,"id"?: string,"operator_id": string,"origin"?: Database["public"]['Enums']["departure_origin"],"seats_booked"?: number,"start_time": string,"starts_at": string,"status"?: Database["public"]['Enums']["departure_status"],"tour_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "capacity"?: number,"created_at"?: string,"date"?: string,"guide_id"?: string | null,"id"?: string,"operator_id"?: string,"origin"?: Database["public"]['Enums']["departure_origin"],"seats_booked"?: number,"start_time"?: string,"starts_at"?: string,"status"?: Database["public"]['Enums']["departure_status"],"tour_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tour_departures_guide_fkey"
+      columns: ["operator_id","guide_id"]
+isOneToOne: false
+      referencedRelation: "guides"
+      referencedColumns: ["operator_id","id"]
+    },{
+      foreignKeyName: "tour_departures_operator_id_fkey"
+      columns: ["operator_id"]
+isOneToOne: false
+      referencedRelation: "operators"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tour_departures_tour_fkey"
+      columns: ["operator_id","tour_id"]
+isOneToOne: false
+      referencedRelation: "tours"
+      referencedColumns: ["operator_id","id"]
+    }
+                  ]
+                },"tour_prices": {
+                  Row: {
+                    "channel": Database["public"]['Enums']["channel"],"created_at": string,"currency": string,"id": string,"operator_id": string,"price_minor": number,"tour_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "channel": Database["public"]['Enums']["channel"],"created_at"?: string,"currency": string,"id"?: string,"operator_id": string,"price_minor": number,"tour_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "channel"?: Database["public"]['Enums']["channel"],"created_at"?: string,"currency"?: string,"id"?: string,"operator_id"?: string,"price_minor"?: number,"tour_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tour_prices_operator_id_fkey"
+      columns: ["operator_id"]
+isOneToOne: false
+      referencedRelation: "operators"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tour_prices_tour_fkey"
+      columns: ["operator_id","tour_id"]
+isOneToOne: false
+      referencedRelation: "tours"
+      referencedColumns: ["operator_id","id"]
+    }
+                  ]
+                },"tour_schedules": {
+                  Row: {
+                    "capacity_override": number | null,"created_at": string,"id": string,"operator_id": string,"start_time": string,"tour_id": string,"updated_at": string,"valid_from": string,"valid_to": string | null,"weekday": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "capacity_override"?: number | null,"created_at"?: string,"id"?: string,"operator_id": string,"start_time": string,"tour_id": string,"updated_at"?: string,"valid_from": string,"valid_to"?: string | null,"weekday": number
+                  }
+                  Update: {
+                    "capacity_override"?: number | null,"created_at"?: string,"id"?: string,"operator_id"?: string,"start_time"?: string,"tour_id"?: string,"updated_at"?: string,"valid_from"?: string,"valid_to"?: string | null,"weekday"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tour_schedules_operator_id_fkey"
+      columns: ["operator_id"]
+isOneToOne: false
+      referencedRelation: "operators"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tour_schedules_tour_fkey"
+      columns: ["operator_id","tour_id"]
+isOneToOne: false
+      referencedRelation: "tours"
+      referencedColumns: ["operator_id","id"]
+    }
+                  ]
+                },"tours": {
+                  Row: {
+                    "archived_at": string | null,"created_at": string,"default_capacity": number,"description": string | null,"duration_minutes": number,"id": string,"meeting_point": string | null,"name": string,"operator_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "archived_at"?: string | null,"created_at"?: string,"default_capacity": number,"description"?: string | null,"duration_minutes": number,"id"?: string,"meeting_point"?: string | null,"name": string,"operator_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "archived_at"?: string | null,"created_at"?: string,"default_capacity"?: number,"description"?: string | null,"duration_minutes"?: number,"id"?: string,"meeting_point"?: string | null,"name"?: string,"operator_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tours_operator_id_fkey"
+      columns: ["operator_id"]
+isOneToOne: false
+      referencedRelation: "operators"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
@@ -159,10 +263,13 @@ isOneToOne: false
                            },
 "admin_seed_membership":
 { Args: { "actor_id": string,"operator_id": string,"role": Database["public"]['Enums']["membership_role"],"user_id": string }; Returns: undefined
+                           },
+"cancel_departure":
+{ Args: { "departure_id": string }; Returns: undefined
                            }
           }
           Enums: {
-            "membership_role": "administrador"|"reservas"|"contabilidad"|"guia"
+            "channel": "direct"|"getyourguide"|"viator"|"whatsapp","departure_origin": "schedule"|"ad_hoc","departure_status": "scheduled"|"closed"|"cancelled","membership_role": "administrador"|"reservas"|"contabilidad"|"guia"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -282,7 +389,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "membership_role": ["administrador", "reservas", "contabilidad", "guia"]
+            "channel": ["direct", "getyourguide", "viator", "whatsapp"],"departure_origin": ["schedule", "ad_hoc"],"departure_status": ["scheduled", "closed", "cancelled"],"membership_role": ["administrador", "reservas", "contabilidad", "guia"]
           }
         }
 } as const
