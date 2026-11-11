@@ -1,0 +1,42 @@
+{
+  "common": {
+    "appName": "cupo",
+    "tagline": "Bookings for tour operators",
+    "loading": "Loading…",
+    "language": {
+      "label": "Language",
+      "es": "Español",
+      "en": "English"
+    },
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "back": "Back"
+    },
+    "notFound": {
+      "title": "Page not found",
+      "description": "The page you are looking for does not exist or was moved.",
+      "backHome": "Back to home"
+    }
+  },
+  "landing": {
+    "eyebrow": "Phase 1",
+    "title": "Manage your tours and bookings in one place",
+    "subtitle": "Operators, teams, tours with capacity, guides and manual reservations, with every operator's data isolated by design.",
+    "status": "The multi-operator foundation is under construction. Access arrives with the next stage.",
+    "features": {
+      "operators": {
+        "title": "One space per operator",
+        "description": "Each operator sees only its own tours, customers and reservations."
+      },
+      "capacity": {
+        "title": "Capacity under control",
+        "description": "Every departure has a capacity and reservations never exceed it."
+      },
+      "roles": {
+        "title": "Clear roles",
+        "description": "Admins, managers, agents and guides see only what they need."
+      }
+    }
+  }
+}

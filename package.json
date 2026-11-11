@@ -1,0 +1,36 @@
+{
+  "name": "cupo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @cupo/web",
+    "build": "npm run build -w @cupo/web",
+    "lint": "eslint . && npm run lint --workspaces --if-present",
+    "typecheck": "tsc --noEmit -p . && npm run typecheck --workspaces --if-present",
+    "test:unit": "vitest run --project unit",
+    "test:db": "vitest run --project db --no-file-parallelism",
+    "db:types": "echo 'db:types: configured in U2' && exit 0",
+    "db:seed-users": "echo 'db:seed-users: configured in U2' && exit 0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "eslint": "^9",
+    "typescript": "^5",
+    "typescript-eslint": "^8",
+    "vitest": "^3.2.4"
+  },
+  "optionalDependencies": {
+    "@swc/core-linux-x64-gnu": "*",
+    "@swc/core-linux-x64-musl": "*",
+    "@tailwindcss/oxide-linux-x64-gnu": "*",
+    "@tailwindcss/oxide-linux-x64-musl": "*",
+    "lightningcss-linux-x64-gnu": "*",
+    "lightningcss-linux-x64-musl": "*"
+  }
+}
