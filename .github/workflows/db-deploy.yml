@@ -11,6 +11,9 @@ name: db-deploy
 #   so a new app never runs against an old schema.
 # - bootstrap-operator: runs scripts/bootstrap-operator.ts against dev or prod
 #   with the secret key that lives only in the matching environment.
+# - seed-dev-accounts: creates fixed password test accounts on cupo-dev only
+#   (scripts/seed-hosted-dev.ts, issue #15). The shared password comes from a
+#   secret and is never printed; this repository is public.
 # Every job skips with a notice when its secrets or variables are missing, so the
 # workflow stays green until the hosted project and its values exist (README,
 # "GitHub secrets and variables"). `--include-seed` is never passed. CLI 3.x
@@ -28,7 +31,7 @@ on:
         type: choice
         required: true
         default: deploy-prod
-        options: [deploy-prod, bootstrap-operator]
+        options: [deploy-prod, bootstrap-operator, seed-dev-accounts]
       target:
         description: Target project for bootstrap-operator
         type: choice
@@ -287,3 +290,50 @@ jobs:
             --name "$OPERATOR_NAME" --slug "$OPERATOR_SLUG" \
             --timezone "$OPERATOR_TIMEZONE" --currency "$OPERATOR_CURRENCY" --locale "$OPERATOR_LOCALE" \
             --admin-email "$ADMIN_EMAIL" --admin-name "${ADMIN_NAME:-$ADMIN_EMAIL}"
+
+  # Issue #15: fixed test accounts on cupo-dev while hosted email is unavailable
+  # (issue #13). Dev only: it uses repository secrets, never the protected
+  # `production` environment, and the script refuses any URL but cupo-dev.
+  seed-dev-accounts:
+    name: seed-dev-accounts
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'seed-dev-accounts'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF_DEV }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY_DEV }}
+      SEED_PASSWORD: ${{ secrets.SUPABASE_DEV_SEED_PASSWORD }}
+    steps:
+      - name: Check configuration
+        id: config
+        run: |
+          missing=""
+          [ -n "${SUPABASE_PROJECT_REF:-}" ] || missing="$missing SUPABASE_PROJECT_REF_DEV(variable)"
+          [ -n "${SUPABASE_SECRET_KEY:-}" ] || missing="$missing SUPABASE_SECRET_KEY_DEV"
+          [ -n "${SEED_PASSWORD:-}" ] || missing="$missing SUPABASE_DEV_SEED_PASSWORD"
+          if [ -n "$missing" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=seed-dev-accounts skipped::Missing:$missing. No account was created."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.config.outputs.configured == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.config.outputs.configured == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        if: steps.config.outputs.configured == 'true'
+        run: npm ci
+
+      - name: Seed test accounts on cupo-dev
+        if: steps.config.outputs.configured == 'true'
+        env:
+          SUPABASE_URL: https://${{ vars.SUPABASE_PROJECT_REF_DEV }}.supabase.co
+          CUPO_DEV_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF_DEV }}
+        run: node scripts/seed-hosted-dev.ts
