@@ -87,19 +87,27 @@ cupo/
     tests/                    # pgTAP (rls_coverage_test.sql)
   scripts/
     seed-users.ts  bootstrap-operator.ts  db-types.ts  lib/local-stack.ts
-  tests/db/                   # Vitest db project: setup.ts, helpers.ts, fixtures.ts, *.test.ts
+  tests/db/                   # Vitest db project: setup.ts, helpers.ts, fixtures.ts, mailpit.ts, *.test.ts
   packages/shared/          # @cupo/shared: framework-free TypeScript, consumed as source (no build)
     package.json  tsconfig.json  eslint.config.mjs  src/index.ts  src/database.types.ts (generated)
+    src/permissions.ts  src/errors.ts  src/schemas/auth.ts
   apps/web/                 # @cupo/web: the Next.js app
     package.json  next.config.mjs  vercel.json  eslint.config.mjs  postcss.config.mjs  tsconfig.json
     .env.local.example
     messages/es.json  messages/en.json
-    src/i18n/{routing,request,navigation}.ts
-    src/lib/logger.ts
+    src/proxy.ts                         # session refresh + next-intl + optimistic login redirect
+    src/i18n/{routing,request,navigation,params}.ts
+    src/lib/{logger,result}.ts
+    src/lib/supabase/{client,server,proxy,admin}.ts
+    src/lib/dal/{context,errors,page}.ts # active operator context (the authority), DAL errors
+    src/lib/auth/{confirm,request}.ts
     src/app/globals.css
+    src/app/auth/confirm/route.ts        # token-hash confirm route, outside [locale]
     src/app/[locale]/layout.tsx          # root layout (<html lang>); there is no src/app/layout.tsx
-    src/app/[locale]/page.tsx            # landing
+    src/app/[locale]/(auth)/             # login, set-password, reset-password, no-access
+    src/app/[locale]/(app)/              # shell layout, home, section pages (placeholders until U4-U9)
     src/app/[locale]/[...rest]/page.tsx  # localized 404
+    src/components/{auth,layout}/
 ```
 
 Rules that the tooling enforces:
@@ -112,7 +120,9 @@ Rules that the tooling enforces:
 - `messages/es.json` and `messages/en.json` must have identical key sets
   (`apps/web/src/i18n/messages.test.ts`).
 - The logger (`apps/web/src/lib/logger.ts`) redacts `password`, `token_hash`,
-  `email`, `access_token` and `refresh_token` at any depth.
+  `email`, `access_token`, `refresh_token`, `authorization`, `cookie`,
+  `set-cookie`, `action_link`, any key ending in `_token` or `_password` and the
+  Supabase auth cookie `sb-<ref>-auth-token` at any depth.
 
 ## Environment variables
 
@@ -120,6 +130,20 @@ Rules that the tooling enforces:
 `SECRET`, `PASSWORD` or `TOKEN` is ever `NEXT_PUBLIC_`; `SUPABASE_SECRET_KEY` is
 read only in `src/lib/supabase/admin.ts` behind `server-only`, and no production
 secret ever lives on a developer machine.
+
+
+### Signing in locally (U3)
+
+After `npx supabase db reset && npm run db:seed-users`, fill
+`apps/web/.env.local` from `npx supabase status -o env` and run `npm run dev`
+(or `npm run build && npm run start -w @cupo/web`) on `http://localhost:3000`.
+Staff seed users sign in with the passwords printed by `db:seed-users`. The
+seeded guía (`guia-a@cupo.test`) uses "Enviar enlace de acceso": the email
+lands in the local mail UI at `http://127.0.0.1:54324`, and its link goes
+through `/auth/confirm` to the agenda. Browse `http://localhost:3000` (the
+configured `site_url`): Supabase Auth falls back to `site_url` for any origin
+its redirect allowlist does not match, and the session cookie lives on the host
+that opened the link.
 
 ## Branches, PRs and CI
 
@@ -158,13 +182,17 @@ the PR:
       `@swc/core-linux` or `lightningcss` binary.
 - [ ] Turbopack detects the repo root (no multiple-lockfile warning).
 - [ ] `/es` and `/en` return 200.
-- [ ] `/` redirects to `/es`.
-- [ ] An unknown locale (for example `/xx`) returns 404.
+- [ ] `/` redirects to `/es` (from U3 the proxy does it, whatever `Accept-Language` says).
+- [ ] An unknown locale (for example `/xx`) returns 404. From U3, anonymous
+      requests to any app path (including unknown ones) redirect to
+      `/{locale}/login` first; check the 404s signed in.
 - [ ] An unknown path under a valid locale (for example `/es/nope`) returns
       status 404 and, in the browser, the localized 404: `<html lang="es">`
       and the title "Página no encontrada". (`curl` shows Next's hydration
       shell with the locale in the RSC payload; check the DOM, not the raw HTML.)
-- [ ] No `set-cookie` header on an anonymous page.
+- [ ] No `set-cookie` header on an anonymous page. From U3 the only one is
+      next-intl's `NEXT_LOCALE` preference cookie (no session data); the confirm
+      route reads it as its locale fallback (KTD8).
 - [ ] The preview URL matches the redirect pattern registered in Supabase.
 
 ## Database
