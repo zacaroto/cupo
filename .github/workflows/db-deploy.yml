@@ -1,0 +1,286 @@
+name: db-deploy
+
+# KTD10: migrations reach the hosted projects only through this workflow.
+# - dev: every push to main pushes pending migrations and the auth config to
+#   cupo-dev, after dumping the database to a 7-day artifact.
+# - prod: workflow_dispatch on the protected `production` environment (required
+#   reviewer). The dump is encrypted with age to the public key held in that
+#   environment; the private key stays with the plan owner outside GitHub. After
+#   a successful push the production app is deployed with `vercel deploy --prod`
+#   (automatic production deploys from main are disabled in apps/web/vercel.json),
+#   so a new app never runs against an old schema.
+# - bootstrap-operator: runs scripts/bootstrap-operator.ts against dev or prod
+#   with the secret key that lives only in the matching environment.
+# Every job skips with a notice when its secrets or variables are missing, so the
+# workflow stays green until Kevin creates the hosted projects (README, "GitHub
+# secrets and variables"). `--include-seed` is never passed.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What to run
+        type: choice
+        required: true
+        default: deploy-prod
+        options: [deploy-prod, bootstrap-operator]
+      target:
+        description: Target project for bootstrap-operator
+        type: choice
+        required: false
+        default: dev
+        options: [dev, prod]
+      operator_name:
+        description: "bootstrap-operator: operator name"
+        type: string
+        required: false
+      operator_slug:
+        description: "bootstrap-operator: slug (lowercase, dashes)"
+        type: string
+        required: false
+      timezone:
+        description: "bootstrap-operator: IANA timezone (America/Costa_Rica)"
+        type: string
+        required: false
+      currency:
+        description: "bootstrap-operator: ISO 4217 currency (USD)"
+        type: string
+        required: false
+      locale:
+        description: "bootstrap-operator: default locale"
+        type: choice
+        required: false
+        default: es
+        options: [es, en]
+      admin_email:
+        description: "bootstrap-operator: email of the first administrador"
+        type: string
+        required: false
+      admin_name:
+        description: "bootstrap-operator: full name of the first administrador"
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_CLI_VERSION: 3.1.0
+
+jobs:
+  deploy-dev:
+    name: deploy-dev
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Never cancel a push in progress; a second merge waits for the first.
+    concurrency:
+      group: db-deploy-dev
+      cancel-in-progress: false
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN_DEV }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_DEV }}
+      SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF_DEV }}
+    steps:
+      - name: Check configuration
+        id: config
+        run: |
+          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ] || [ -z "${SUPABASE_DB_PASSWORD:-}" ] || [ -z "${SUPABASE_PROJECT_REF:-}" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=deploy-dev skipped::SUPABASE_ACCESS_TOKEN_DEV, SUPABASE_DB_PASSWORD_DEV (secrets) or SUPABASE_PROJECT_REF_DEV (variable) is not configured; nothing was pushed to cupo-dev."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.config.outputs.configured == 'true'
+
+      - uses: supabase/setup-cli@v3
+        if: steps.config.outputs.configured == 'true'
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      - name: Link cupo-dev
+        if: steps.config.outputs.configured == 'true'
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --yes
+
+      - name: Dump before push
+        if: steps.config.outputs.configured == 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p dump
+          supabase db dump --remote -f dump/schema.sql
+          supabase db dump --remote --data-only --use-copy -f dump/data.sql
+
+      - uses: actions/upload-artifact@v4
+        if: steps.config.outputs.configured == 'true'
+        with:
+          name: cupo-dev-dump-${{ github.sha }}
+          path: dump/
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Push migrations
+        if: steps.config.outputs.configured == 'true'
+        run: |
+          set -euo pipefail
+          supabase migration list --remote
+          supabase db push --remote --yes
+
+      - name: Push auth config
+        if: steps.config.outputs.configured == 'true'
+        run: supabase config push --remote --yes
+
+      - name: Verify
+        if: steps.config.outputs.configured == 'true'
+        run: |
+          set -euo pipefail
+          supabase migration list --remote
+          supabase config push --remote --dry-run
+
+  deploy-prod:
+    name: deploy-prod
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'deploy-prod'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    concurrency:
+      group: db-deploy-prod
+      cancel-in-progress: false
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN_PROD }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD_PROD }}
+      SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF_PROD }}
+      AGE_PUBLIC_KEY: ${{ secrets.AGE_PUBLIC_KEY_PROD }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Check configuration
+        id: config
+        run: |
+          missing=""
+          [ -n "${SUPABASE_ACCESS_TOKEN:-}" ] || missing="$missing SUPABASE_ACCESS_TOKEN_PROD"
+          [ -n "${SUPABASE_DB_PASSWORD:-}" ] || missing="$missing SUPABASE_DB_PASSWORD_PROD"
+          [ -n "${SUPABASE_PROJECT_REF:-}" ] || missing="$missing SUPABASE_PROJECT_REF_PROD"
+          [ -n "${AGE_PUBLIC_KEY:-}" ] || missing="$missing AGE_PUBLIC_KEY_PROD"
+          [ -n "${VERCEL_TOKEN:-}" ] || missing="$missing VERCEL_TOKEN"
+          [ -n "${VERCEL_ORG_ID:-}" ] || missing="$missing VERCEL_ORG_ID"
+          [ -n "${VERCEL_PROJECT_ID:-}" ] || missing="$missing VERCEL_PROJECT_ID"
+          if [ -n "$missing" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=deploy-prod skipped::Missing in the production environment:$missing. Nothing was pushed or deployed."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.config.outputs.configured == 'true'
+
+      - uses: supabase/setup-cli@v3
+        if: steps.config.outputs.configured == 'true'
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      - name: Install age
+        if: steps.config.outputs.configured == 'true'
+        run: sudo apt-get update -q && sudo apt-get install -y -q age
+
+      - name: Link cupo-prod
+        if: steps.config.outputs.configured == 'true'
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --yes
+
+      - name: Encrypted dump before push
+        if: steps.config.outputs.configured == 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p dump
+          supabase db dump --remote -f dump/schema.sql
+          supabase db dump --remote --data-only --use-copy -f dump/data.sql
+          tar -czf dump.tar.gz -C dump .
+          age -r "$AGE_PUBLIC_KEY" -o "cupo-prod-dump-${GITHUB_SHA}.tar.gz.age" dump.tar.gz
+          rm -rf dump dump.tar.gz
+
+      - uses: actions/upload-artifact@v4
+        if: steps.config.outputs.configured == 'true'
+        with:
+          name: cupo-prod-dump-${{ github.sha }}
+          path: cupo-prod-dump-${{ github.sha }}.tar.gz.age
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Push migrations
+        if: steps.config.outputs.configured == 'true'
+        run: |
+          set -euo pipefail
+          supabase migration list --remote
+          supabase db push --remote --yes
+
+      - name: Push auth config
+        if: steps.config.outputs.configured == 'true'
+        # `[remotes.production]` in config.toml must carry the real project ref.
+        run: supabase config push --remote=production --yes
+
+      - uses: actions/setup-node@v4
+        if: steps.config.outputs.configured == 'true'
+        with:
+          node-version-file: .nvmrc
+
+      - name: Deploy production app
+        if: steps.config.outputs.configured == 'true'
+        # Only after the schema push succeeded. The Vercel project builds apps/web
+        # (Root Directory) with its own Production environment variables.
+        run: npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
+
+  bootstrap-operator:
+    name: bootstrap-operator (${{ inputs.target }})
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'bootstrap-operator'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ inputs.target == 'prod' && 'production' || 'development' }}
+    env:
+      SUPABASE_PROJECT_REF: ${{ inputs.target == 'prod' && vars.SUPABASE_PROJECT_REF_PROD || vars.SUPABASE_PROJECT_REF_DEV }}
+      SUPABASE_SECRET_KEY: ${{ inputs.target == 'prod' && secrets.SUPABASE_SECRET_KEY_PROD || secrets.SUPABASE_SECRET_KEY_DEV }}
+    steps:
+      - name: Check configuration
+        id: config
+        run: |
+          if [ -z "${SUPABASE_PROJECT_REF:-}" ] || [ -z "${SUPABASE_SECRET_KEY:-}" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=bootstrap-operator skipped::SUPABASE_PROJECT_REF_${{ inputs.target == 'prod' && 'PROD' || 'DEV' }} (variable) or SUPABASE_SECRET_KEY_${{ inputs.target == 'prod' && 'PROD' || 'DEV' }} (secret) is not configured; no operator was created."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.config.outputs.configured == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.config.outputs.configured == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        if: steps.config.outputs.configured == 'true'
+        run: npm ci
+
+      - name: Bootstrap operator
+        if: steps.config.outputs.configured == 'true'
+        env:
+          SUPABASE_URL: https://${{ env.SUPABASE_PROJECT_REF }}.supabase.co
+          OPERATOR_NAME: ${{ inputs.operator_name }}
+          OPERATOR_SLUG: ${{ inputs.operator_slug }}
+          OPERATOR_TIMEZONE: ${{ inputs.timezone }}
+          OPERATOR_CURRENCY: ${{ inputs.currency }}
+          OPERATOR_LOCALE: ${{ inputs.locale }}
+          ADMIN_EMAIL: ${{ inputs.admin_email }}
+          ADMIN_NAME: ${{ inputs.admin_name }}
+        run: |
+          set -euo pipefail
+          node scripts/bootstrap-operator.ts \
+            --name "$OPERATOR_NAME" --slug "$OPERATOR_SLUG" \
+            --timezone "$OPERATOR_TIMEZONE" --currency "$OPERATOR_CURRENCY" --locale "$OPERATOR_LOCALE" \
+            --admin-email "$ADMIN_EMAIL" --admin-name "${ADMIN_NAME:-$ADMIN_EMAIL}"

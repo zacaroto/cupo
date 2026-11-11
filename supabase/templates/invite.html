@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Te invitaron a cupo</title>
+  </head>
+  <body style="font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: #1f2937; line-height: 1.5;">
+    <h2 style="margin: 0 0 16px;">Te invitaron a cupo</h2>
+    <p>Tu cuenta de cupo está lista. Entrá con el siguiente enlace para elegir tu contraseña:</p>
+    <p>
+      <a href="{{ .RedirectTo }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=invite"
+         style="display: inline-block; padding: 10px 16px; background: #0f766e; color: #ffffff; text-decoration: none; border-radius: 6px;">
+        Aceptar la invitación
+      </a>
+    </p>
+    <p style="color: #6b7280; font-size: 14px;">El enlace vence en 15 minutos y se usa una sola vez. Si no esperabas esta invitación, ignorá este correo.</p>
+  </body>
+</html>
