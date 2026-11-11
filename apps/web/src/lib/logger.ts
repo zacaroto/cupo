@@ -43,31 +43,39 @@ function serializeError(error: Error, seen: WeakSet<object>): Record<string, unk
   return out;
 }
 
-/** Returns a copy of `value` with every sensitive key replaced by "[redacted]". */
+/**
+ * Returns a copy of `value` with every sensitive key replaced by "[redacted]".
+ * `seen` holds the ancestors of the current node only, so a value referenced
+ * twice in a non-cyclic tree is serialized twice; only true cycles become
+ * "[circular]".
+ */
 export function redact(value: unknown, seen: WeakSet<object> = new WeakSet()): unknown {
   if (value === null || typeof value !== "object") {
     return value;
+  }
+  if (value instanceof Date) {
+    return value.toISOString();
   }
   if (seen.has(value)) {
     return CIRCULAR;
   }
   seen.add(value);
 
+  let result: unknown;
   if (value instanceof Error) {
-    return serializeError(value, seen);
-  }
-  if (Array.isArray(value)) {
-    return value.map((item) => redact(item, seen));
-  }
-  if (value instanceof Date) {
-    return value.toISOString();
+    result = serializeError(value, seen);
+  } else if (Array.isArray(value)) {
+    result = value.map((item) => redact(item, seen));
+  } else {
+    const out: Record<string, unknown> = {};
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+      out[key] = isRedactedKey(key) ? REDACTED : redact(child, seen);
+    }
+    result = out;
   }
 
-  const out: Record<string, unknown> = {};
-  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
-    out[key] = isRedactedKey(key) ? REDACTED : redact(child, seen);
-  }
-  return out;
+  seen.delete(value);
+  return result;
 }
 
 const transport: Record<LogLevel, (line: string) => void> = {

@@ -129,6 +129,10 @@ the PR:
 - [ ] `/es` and `/en` return 200.
 - [ ] `/` redirects to `/es`.
 - [ ] An unknown locale (for example `/xx`) returns 404.
+- [ ] An unknown path under a valid locale (for example `/es/nope`) returns
+      status 404 and, in the browser, the localized 404: `<html lang="es">`
+      and the title "Página no encontrada". (`curl` shows Next's hydration
+      shell with the locale in the RSC payload; check the DOM, not the raw HTML.)
 - [ ] No `set-cookie` header on an anonymous page.
 - [ ] The preview URL matches the redirect pattern registered in Supabase.
 

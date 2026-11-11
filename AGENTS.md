@@ -10,6 +10,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # cupo — agent notes
 
-- Monorepo: `apps/web` (`@cupo/web`, Next.js 16) and `packages/shared` (`@cupo/shared`, framework-free TypeScript consumed as source). The Next.js docs above live at `apps/web/node_modules/next/dist/docs/`.
+- Monorepo: `apps/web` (`@cupo/web`, Next.js 16) and `packages/shared` (`@cupo/shared`, framework-free TypeScript consumed as source). The Next.js docs above live at `node_modules/next/dist/docs/` at the repo root (npm workspaces hoist `next`; there is no `apps/web/node_modules/next`).
 - Read `README.md` for setup and scripts, `REVIEW.md` for the review priorities and the multi-tenant rules, and `docs/plans/` for the implementation plan.
 - Verification before claiming a unit done: `npm run lint`, `npm run typecheck`, `npm run test:unit`, `npm run build -w @cupo/web`.

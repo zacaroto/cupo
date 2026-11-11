@@ -100,6 +100,27 @@ describe("logger", () => {
     });
   });
 
+  it("serializes shared non-cyclic references instead of marking them circular", () => {
+    const u = { id: 1 };
+    const d = new Date("2026-01-02T03:04:05.000Z");
+    logger.info("x", { extra: { a: u, b: u, when: [d, d] } });
+    expect(lastJson(logSpy).extra).toEqual({
+      a: { id: 1 },
+      b: { id: 1 },
+      when: ["2026-01-02T03:04:05.000Z", "2026-01-02T03:04:05.000Z"],
+    });
+  });
+
+  it("still marks a real cycle reached through a shared reference as circular", () => {
+    const node: Record<string, unknown> = { id: 2 };
+    node.parent = { child: node };
+    logger.info("x", { extra: { first: node, second: node } });
+    expect(lastJson(logSpy).extra).toEqual({
+      first: { id: 2, parent: { child: "[circular]" } },
+      second: { id: 2, parent: { child: "[circular]" } },
+    });
+  });
+
   it("createLogger binds request and operator context to every line", () => {
     const scoped = createLogger({ requestId: "req-7", operatorId: "op-7" });
     scoped.info("hello");
