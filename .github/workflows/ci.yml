@@ -139,6 +139,11 @@ jobs:
         timeout-minutes: 10
         run: |
           set -euo pipefail
+          # The stack binds host ports 54321-54329, which sit inside Linux's default
+          # ephemeral range (32768-60999). Image pulls open many outbound
+          # connections, and one of them can hold a stack port just before Docker
+          # binds it ("address already in use"). Move ephemeral ports above 55000.
+          sudo sysctl -w net.ipv4.ip_local_port_range="55000 65000"
           if ! supabase start -x "$SUPABASE_START_EXCLUDE"; then
             echo "::warning::supabase start failed; retrying once after supabase stop --no-backup"
             supabase stop --no-backup || true
