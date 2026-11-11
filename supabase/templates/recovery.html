@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Restablecer tu contraseña de cupo</title>
+  </head>
+  <body style="font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: #1f2937; line-height: 1.5;">
+    <h2 style="margin: 0 0 16px;">Restablecer tu contraseña</h2>
+    <p>Recibimos un pedido para restablecer la contraseña de tu cuenta de cupo. Usá el siguiente enlace para elegir una nueva:</p>
+    <p>
+      <a href="{{ .RedirectTo }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=recovery"
+         style="display: inline-block; padding: 10px 16px; background: #0f766e; color: #ffffff; text-decoration: none; border-radius: 6px;">
+        Elegir una nueva contraseña
+      </a>
+    </p>
+    <p style="color: #6b7280; font-size: 14px;">El enlace vence en 15 minutos y se usa una sola vez. Si no pediste restablecer la contraseña, ignorá este correo: tu contraseña actual sigue vigente.</p>
+  </body>
+</html>

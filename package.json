@@ -1,6 +1,7 @@
 {
   "name": "cupo",
   "private": true,
+  "type": "module",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -15,12 +16,14 @@
     "typecheck": "tsc --noEmit -p . && npm run typecheck --workspaces --if-present",
     "test:unit": "vitest run --project unit",
     "test:db": "vitest run --project db --no-file-parallelism",
-    "db:types": "echo 'db:types: configured in U2' && exit 0",
-    "db:seed-users": "echo 'db:seed-users: configured in U2' && exit 0"
+    "db:types": "node scripts/db-types.ts",
+    "db:seed-users": "node scripts/seed-users.ts"
   },
   "devDependencies": {
+    "@supabase/supabase-js": "^2.119.0",
     "@types/node": "^22",
     "eslint": "^9",
+    "postgres": "^3.4.9",
     "typescript": "^5",
     "typescript-eslint": "^8",
     "vitest": "^3.2.4"
