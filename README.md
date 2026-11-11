@@ -172,17 +172,20 @@ the PR:
 ### Local stack
 
 `supabase/config.toml` describes the local stack and the hosted `cupo-dev`
-project at the same time (KTD1): `[api] schemas = ["public", "audit"]`
+project (ref `lnyjvnqhpwktxptxopvy`, region us-west-2; `project_id` carries
+that ref and also names the local containers) at the same time (KTD1):
+`[api] schemas = ["public", "audit"]`
 (`private` is never exposed), `auto_expose_new_tables = false` so a missing
 grant fails locally first, `[auth] enable_signup = false` (invite-only, KTD8),
 `otp_expiry = 900`, a password policy of 10+ characters with letters and
 digits, email templates under `supabase/templates/` whose links are
 `{{ .RedirectTo }}/auth/confirm?token_hash=...&type=...`, and secrets through
 `env(...)` only. `[remotes.production]` overrides the project ref, site URL and
-redirect list for `cupo-prod`. Two placeholders must be replaced once the
-external projects exist: the Vercel preview pattern in
-`additional_redirect_urls` and the `cupo-prod` `project_id`/`site_url` in
-`[remotes.production]`.
+redirect list for `cupo-prod`. Two placeholders remain until the external
+projects exist: the Vercel preview pattern in `additional_redirect_urls` and
+the `cupo-prod` `project_id`/`site_url` in `[remotes.production]`. Nothing is
+ever run against a hosted project from a developer machine; the workflows link
+with `supabase link --project-ref` inside GitHub Actions.
 
 ### Migrations
 
@@ -269,9 +272,11 @@ after `supabase stop --no-backup`), then runs `supabase db reset`,
 `npm run db:seed-users`, `supabase test db`, `npm run test:db` and
 `npm run db:types -- --check`. On pull requests it also runs the migration
 preflight against `cupo-dev` (`supabase migration list --remote` and
-`supabase db push --dry-run --remote`; the pending set must equal exactly the
-PR's new migration files) when `SUPABASE_ACCESS_TOKEN_DEV` and
-`SUPABASE_PROJECT_REF_DEV` exist, and prints a notice otherwise.
+`supabase db push --dry-run --remote --output-format json`; its `migrations`
+array must equal exactly the migration files the PR adds, compared with
+`git diff --name-only --diff-filter=A origin/main...HEAD -- supabase/migrations`)
+when `SUPABASE_ACCESS_TOKEN_DEV`, `SUPABASE_DB_PASSWORD_DEV` and
+`SUPABASE_PROJECT_REF_DEV` are available, and prints a notice otherwise (forks).
 
 ### Deploy workflow (`.github/workflows/db-deploy.yml`)
 
@@ -292,21 +297,21 @@ PR's new migration files) when `SUPABASE_ACCESS_TOKEN_DEV` and
   notice when any is missing, so the workflow stays green until the hosted
   projects exist.
 
-### GitHub secrets and variables (Kevin)
+### GitHub secrets and variables
 
-| Name | Kind | Where | Used by |
-|---|---|---|---|
-| `SUPABASE_ACCESS_TOKEN_DEV` | secret | repository | PR preflight, `deploy-dev` (CI account in the dev organization) |
-| `SUPABASE_DB_PASSWORD_DEV` | secret | repository | `deploy-dev` (dump and push) and the preflight |
-| `SUPABASE_PROJECT_REF_DEV` | variable | repository | preflight, `deploy-dev`, `bootstrap-operator` (dev) |
-| `SUPABASE_SECRET_KEY_DEV` | secret | repository (or `development` environment) | `bootstrap-operator` with `target = dev` |
-| `SUPABASE_ACCESS_TOKEN_PROD` | secret | `production` environment | `deploy-prod` |
-| `SUPABASE_DB_PASSWORD_PROD` | secret | `production` environment | `deploy-prod` |
-| `SUPABASE_PROJECT_REF_PROD` | variable | `production` environment | `deploy-prod`, `bootstrap-operator` (prod) |
-| `SUPABASE_SECRET_KEY_PROD` | secret | `production` environment | `bootstrap-operator` with `target = prod` |
-| `AGE_PUBLIC_KEY_PROD` | secret | `production` environment | encrypts the prod dump |
-| `VERCEL_TOKEN` | secret | `production` environment | `vercel deploy --prod` |
-| `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` | variables | `production` environment | `vercel deploy --prod` |
+| Name | Kind | Where | Used by | Status |
+|---|---|---|---|---|
+| `SUPABASE_ACCESS_TOKEN_DEV` | secret | repository | PR preflight, `deploy-dev` (CI account in the dev organization) | present |
+| `SUPABASE_DB_PASSWORD_DEV` | secret | repository | preflight, `deploy-dev` (link, dump, push) | present |
+| `SUPABASE_PROJECT_REF_DEV` | variable | repository | preflight, `deploy-dev`, `bootstrap-operator` (dev) | present (`lnyjvnqhpwktxptxopvy`) |
+| `SUPABASE_SECRET_KEY_DEV` | secret | repository (or `development` environment) | `bootstrap-operator` with `target = dev` | missing |
+| `SUPABASE_ACCESS_TOKEN_PROD` | secret | `production` environment | `deploy-prod` | Phase 2 |
+| `SUPABASE_DB_PASSWORD_PROD` | secret | `production` environment | `deploy-prod` | Phase 2 |
+| `SUPABASE_PROJECT_REF_PROD` | variable | `production` environment | `deploy-prod`, `bootstrap-operator` (prod) | Phase 2 |
+| `SUPABASE_SECRET_KEY_PROD` | secret | `production` environment | `bootstrap-operator` with `target = prod` | Phase 2 |
+| `AGE_PUBLIC_KEY_PROD` | secret | `production` environment | encrypts the prod dump | Phase 2 |
+| `VERCEL_TOKEN` | secret | `production` environment | `vercel deploy --prod` | Phase 2 |
+| `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` | variables | `production` environment | `vercel deploy --prod` | Phase 2 |
 
 The `production` environment needs a required reviewer. Supabase access tokens
 are account-wide, so the dev token belongs to a CI account that is a member of

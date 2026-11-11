@@ -169,10 +169,12 @@ jobs:
         if: steps.changes.outputs.run == 'true'
         run: npm run db:types -- --check
 
-      # Migration preflight against cupo-dev (KTD11): the pending set must equal
-      # exactly the pull request's new migration files. Skips with a notice until
-      # Kevin creates the hosted project and its GitHub values (README, "GitHub
-      # secrets and variables").
+      # Migration preflight against cupo-dev (KTD11): the set of migrations that
+      # `db push --dry-run` would apply must equal exactly the migration files
+      # this pull request adds. Skips with a notice when the secrets are absent
+      # (forks, or a repository without the values in README "GitHub secrets and
+      # variables"). CLI 3.x: `--remote` replaces the former `--linked`; `link`
+      # reads SUPABASE_ACCESS_TOKEN and SUPABASE_DB_PASSWORD from the environment.
       - name: Migration preflight against cupo-dev
         if: steps.changes.outputs.run == 'true' && github.event_name == 'pull_request'
         env:
@@ -182,8 +184,8 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: |
           set -euo pipefail
-          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ] || [ -z "${SUPABASE_PROJECT_REF:-}" ]; then
-            echo "::notice title=Migration preflight skipped::SUPABASE_ACCESS_TOKEN_DEV (secret) or SUPABASE_PROJECT_REF_DEV (variable) is not configured; the preflight against cupo-dev did not run."
+          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ] || [ -z "${SUPABASE_DB_PASSWORD:-}" ] || [ -z "${SUPABASE_PROJECT_REF:-}" ]; then
+            echo "::notice title=Migration preflight skipped::SUPABASE_ACCESS_TOKEN_DEV, SUPABASE_DB_PASSWORD_DEV (secrets) or SUPABASE_PROJECT_REF_DEV (variable) is not available; the preflight against cupo-dev did not run."
             exit 0
           fi
           supabase link --project-ref "$SUPABASE_PROJECT_REF" --yes
@@ -191,9 +193,10 @@ jobs:
           supabase migration list --remote
           echo "::endgroup::"
           echo "::group::supabase db push --dry-run --remote"
-          dry_run=$(supabase db push --dry-run --remote 2>&1 | tee /dev/stderr)
+          supabase db push --dry-run --remote --output-format json | tee dry-run.json
           echo "::endgroup::"
-          pending=$(printf '%s\n' "$dry_run" | grep -oE '[0-9]{14}_[A-Za-z0-9_-]+\.sql' | sort -u || true)
+          # The JSON line is the last line of the output: {"upToDate":...,"dryRun":true,"migrations":["<file>.sql", ...],...}
+          pending=$(tail -n 1 dry-run.json | jq -r '.migrations[]' | sort -u)
           added=$(git diff --name-only --diff-filter=A "origin/$BASE_REF"...HEAD -- supabase/migrations | xargs -n1 basename 2>/dev/null | sort -u || true)
           printf 'Pending on cupo-dev:\n%s\n\nAdded by this pull request:\n%s\n' "${pending:-<none>}" "${added:-<none>}"
           if [ "$pending" != "$added" ]; then

@@ -12,8 +12,11 @@ name: db-deploy
 # - bootstrap-operator: runs scripts/bootstrap-operator.ts against dev or prod
 #   with the secret key that lives only in the matching environment.
 # Every job skips with a notice when its secrets or variables are missing, so the
-# workflow stays green until Kevin creates the hosted projects (README, "GitHub
-# secrets and variables"). `--include-seed` is never passed.
+# workflow stays green until the hosted project and its values exist (README,
+# "GitHub secrets and variables"). `--include-seed` is never passed. CLI 3.x
+# flags: `--remote` replaces the former `--linked`; `link`, `db dump`, `db push`
+# and `migration list` read SUPABASE_ACCESS_TOKEN and SUPABASE_DB_PASSWORD from
+# the environment; `config push` exists in 3.1.0 (`supabase config push --help`).
 
 on:
   push:

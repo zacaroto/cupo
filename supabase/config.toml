@@ -11,7 +11,10 @@
 #   (`npx supabase config push --remote=production`).
 # - Secrets are never literal here: use `env(VARIABLE_NAME)`.
 # - Hosted projects are in sync when `npx supabase config push --dry-run` reports no changes.
-project_id = "cupo"
+# The value is the `cupo-dev` project ref (us-west-2); locally it only names the docker
+# containers (supabase_db_<project_id>). Linking still happens with
+# `npx supabase link --project-ref lnyjvnqhpwktxptxopvy` (CI does it; never from a dev machine).
+project_id = "lnyjvnqhpwktxptxopvy"
 
 [api]
 enabled = true
