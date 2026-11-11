@@ -21,6 +21,20 @@ local Supabase stack. Files run in series (`--no-file-parallelism`).
   DAL, with only `next/headers` replaced by an in-memory cookie jar: password
   sign-in, magic-link and reset parity for unknown emails, the guía link, the
   invite and set-password gate, AE7, the operator switch and sign-out.
+- `next-harness.ts` holds the cookie jar, form and redirect helpers and a
+  fetch recorder (`withFetch`, which can also fake a mailer failure) for the
+  suites that drive server actions (`auth.test.ts` keeps its inline copy).
+- `members.test.ts` covers U4 members: new-email invite, AE9 (existing email
+  from another operator: same state, no second user, one sign-in link, no
+  minted link or token received or logged), duplicate invite, one
+  `email_failed` state for every email failure with the membership undone,
+  reservas forbidden (action and direct insert), resend, AE6 at the action
+  layer, found-checks and the membership audit actor.
+- `guides.test.ts` covers U4 guides: seeded guides and the guía context's
+  `guideId`, `private.my_guide_ids()`, guides RLS and grants, contact email
+  uniqueness, `guide_not_linked` / `guide_has_access`, and the create, edit,
+  send-access (account created without an invite mail, magic link only, guía
+  lands on the agenda) and deactivate actions.
 - `foundation.test.ts` covers the U2 scenarios: AE2 cross-operator reads and
   writes, operator column grants, admin rpc privileges, AE6 last administrador,
   inactive operators, timezone validation, profiles visibility, password sign-in

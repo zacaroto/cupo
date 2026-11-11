@@ -10,6 +10,7 @@
 export const TYPED_ERRORS = [
   "last_administrador",
   "guide_not_linked",
+  "guide_has_access",
   "capacity_exceeded",
   "departure_not_open",
   "tour_archived",
@@ -43,12 +44,20 @@ export const AUTH_ERRORS = [
   "link_invalid",
 ] as const;
 
-export const ACTION_ERRORS = [...new Set([...GENERIC_ERRORS, ...TYPED_ERRORS, ...AUTH_ERRORS])] as const;
+/**
+ * States specific to the members and guides flows (U4). `email_failed` is the
+ * single state for every invite or sign-in email failure, whether the email
+ * had an account or not (R9: responses never reveal it).
+ */
+export const ACCESS_ERRORS = ["email_failed", "guide_email_required", "guide_inactive"] as const;
+
+export const ACTION_ERRORS = [...new Set([...GENERIC_ERRORS, ...TYPED_ERRORS, ...AUTH_ERRORS, ...ACCESS_ERRORS])] as const;
 
 export type ActionErrorCode =
   | (typeof GENERIC_ERRORS)[number]
   | TypedErrorName
-  | (typeof AUTH_ERRORS)[number];
+  | (typeof AUTH_ERRORS)[number]
+  | (typeof ACCESS_ERRORS)[number];
 
 export function isTypedError(value: unknown): value is TypedErrorName {
   return typeof value === "string" && (TYPED_ERRORS as readonly string[]).includes(value);

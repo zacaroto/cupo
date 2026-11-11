@@ -33,12 +33,23 @@ export const OPERATORS = {
 
 export type MembershipRole = "administrador" | "reservas" | "contabilidad" | "guia";
 
+export type GuideKey = "a1" | "a2" | "b1";
+
+/** Guides seeded by supabase/seed.sql (keep the uuids in sync). a1 is linked to the seeded guía. */
+export const GUIDES = {
+  a1: { id: "9a100000-0000-4000-8000-00000000000a", operator: "a", name: "Guía A", email: "guia-a@cupo.test" },
+  a2: { id: "9a200000-0000-4000-8000-00000000000a", operator: "a", name: "Guía A sin cuenta", email: "guia-a2@cupo.test" },
+  b1: { id: "9b100000-0000-4000-8000-00000000000b", operator: "b", name: "Guía B", email: "guia-b@cupo.test" },
+} as const satisfies Record<GuideKey, { id: string; operator: OperatorKey; name: string; email: string }>;
+
 export type SeedUserSpec = {
   email: string;
   fullName: string;
   /** Staff users get `app_metadata.password_set_at`; the guía does not (KTD8). */
   staff: boolean;
   memberships: ReadonlyArray<{ operator: OperatorKey; role: MembershipRole }>;
+  /** Seeded guide to link before the memberships (a guía membership requires it, R19). */
+  guide?: GuideKey;
 };
 
 /** Every role of A, one user in A and B, one user in B (plan U2 step 4). */
@@ -66,6 +77,7 @@ export const SEED_USERS = {
     fullName: "Guía A",
     staff: false,
     memberships: [{ operator: "a", role: "guia" }],
+    guide: "a1",
   },
   adminAB: {
     email: "admin-ab@cupo.test",

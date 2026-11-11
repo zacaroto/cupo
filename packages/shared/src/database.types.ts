@@ -77,6 +77,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"guides": {
+                  Row: {
+                    "active": boolean,"created_at": string,"email": string | null,"id": string,"languages": (string)[],"max_daily_hours": number | null,"name": string,"operator_id": string,"phone": string | null,"specialties": (string)[],"updated_at": string,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"created_at"?: string,"email"?: string | null,"id"?: string,"languages"?: (string)[],"max_daily_hours"?: number | null,"name": string,"operator_id": string,"phone"?: string | null,"specialties"?: (string)[],"updated_at"?: string,"user_id"?: string | null
+                  }
+                  Update: {
+                    "active"?: boolean,"created_at"?: string,"email"?: string | null,"id"?: string,"languages"?: (string)[],"max_daily_hours"?: number | null,"name"?: string,"operator_id"?: string,"phone"?: string | null,"specialties"?: (string)[],"updated_at"?: string,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "guides_operator_id_fkey"
+      columns: ["operator_id"]
+isOneToOne: false
+      referencedRelation: "operators"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"memberships": {
                   Row: {
                     "created_at": string,"id": string,"operator_id": string,"role": Database["public"]['Enums']["membership_role"],"updated_at": string,"user_id": string
@@ -133,6 +153,9 @@ isOneToOne: false
           Functions: {
             "admin_bootstrap_operator":
 { Args: { "actor_id": string,"admin_user_id": string,"currency": string,"locale": string,"name": string,"slug": string,"timezone": string }; Returns: string
+                           },
+"admin_seed_guide_user":
+{ Args: { "actor_id": string,"guide_id": string,"user_id": string }; Returns: undefined
                            },
 "admin_seed_membership":
 { Args: { "actor_id": string,"operator_id": string,"role": Database["public"]['Enums']["membership_role"],"user_id": string }; Returns: undefined

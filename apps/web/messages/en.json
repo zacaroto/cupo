@@ -96,6 +96,105 @@
       "description": "This section arrives in a later stage."
     }
   },
+  "members": {
+    "title": "Team",
+    "description": "Invite your team and manage their roles. Guides get access from their record in Guides.",
+    "invite": {
+      "title": "Invite a team member",
+      "submit": "Send invitation",
+      "sent": "Done. We sent an access email."
+    },
+    "fields": {
+      "email": "Email",
+      "role": "Role"
+    },
+    "table": {
+      "caption": "Operator members",
+      "person": "Person",
+      "role": "Role",
+      "since": "Since",
+      "actions": "Actions",
+      "you": "You",
+      "noName": "No name",
+      "guideOf": "Guide: {name}",
+      "empty": "No members yet."
+    },
+    "actions": {
+      "roleLabel": "Role of {name}",
+      "changeRole": "Change",
+      "roleChanged": "Role updated.",
+      "resend": "Resend access",
+      "resent": "Email sent.",
+      "remove": "Remove",
+      "removeConfirm": "Remove {name}'s access to this operator?"
+    },
+    "validation": {
+      "emailRequired": "Enter an email.",
+      "emailInvalid": "Enter a valid email.",
+      "roleInvalid": "Pick a role from the list.",
+      "idInvalid": "The record is not valid."
+    }
+  },
+  "guides": {
+    "title": "Guides",
+    "description": "The operator's guide registry.",
+    "empty": "No guides yet.",
+    "new": "Add guide",
+    "create": "Create guide",
+    "save": "Save changes",
+    "saved": "Changes saved.",
+    "back": "Back to guides",
+    "none": "—",
+    "edit": "Guide details",
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "languages": "Languages",
+      "languagesHint": "Comma separated, for example: es, en",
+      "specialties": "Specialties",
+      "specialtiesHint": "Comma separated",
+      "maxDailyHours": "Max hours per day",
+      "status": "Status",
+      "access": "Access"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "access": {
+      "title": "Access to cupo",
+      "none": "No account. Send access and the guide signs in with an emailed link, no password.",
+      "linked": "Has an account, but no access to this operator.",
+      "granted": "Has guide access and sees only their departures.",
+      "inactive": "Reactivate the guide to send access.",
+      "send": "Send access",
+      "resend": "Resend link",
+      "sent": "We sent the access link.",
+      "emailRequired": "Add an email to the guide to send access.",
+      "yes": "Has access",
+      "no": "No access"
+    },
+    "activation": {
+      "title": "Status",
+      "activeDescription": "The guide can be assigned to departures.",
+      "inactiveDescription": "The guide cannot be assigned to departures and has no access.",
+      "deactivate": "Deactivate guide",
+      "deactivateConfirm": "Deactivate {name}? They lose access to cupo.",
+      "reactivate": "Reactivate guide"
+    },
+    "validation": {
+      "nameRequired": "Enter the name.",
+      "nameTooLong": "Use at most 120 characters.",
+      "emailRequired": "Enter an email.",
+      "emailInvalid": "Enter a valid email.",
+      "phoneInvalid": "Use only digits, spaces and + ( ) - .",
+      "listTooLong": "Use at most 20 items.",
+      "listItemTooLong": "Each item can have up to 40 characters.",
+      "hoursInvalid": "Enter a whole number from 1 to 24.",
+      "idInvalid": "The record is not valid."
+    }
+  },
   "errors": {
     "unauthenticated": "Your session expired. Sign in again.",
     "forbidden": "You are not allowed to do this.",
@@ -118,7 +217,11 @@
     "weak_password": "Choose a stronger password.",
     "same_password": "The new password must differ from the current one.",
     "rate_limited": "Too many attempts. Wait a moment and try again.",
-    "link_invalid": "The link is invalid or has expired. Request a new one."
+    "link_invalid": "The link is invalid or has expired. Request a new one.",
+    "guide_has_access": "The guide has access with another account. Remove that access from Team before sending a new one.",
+    "email_failed": "We could not send the email. Try again in a few minutes.",
+    "guide_email_required": "Add a valid email to the guide to send access.",
+    "guide_inactive": "The guide is inactive. Reactivate them to send access."
   },
   "customers": {
     "title": "Customers",

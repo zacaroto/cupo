@@ -206,10 +206,19 @@ function fakeSupabase(options: {
   claims: Record<string, unknown> | null;
   rows?: Array<{ role: string; created_at: string; operator: Record<string, unknown> | null }>;
   error?: { code: string; message: string } | null;
+  guides?: Array<{ id: string; operator_id: string }>;
+  guidesError?: { code: string; message: string } | null;
 }) {
   const eq = vi.fn(async () => ({ data: options.error ? null : (options.rows ?? []), error: options.error ?? null }));
   const select = vi.fn(() => ({ eq }));
-  const from = vi.fn(() => ({ select }));
+  // guides: select("id, operator_id").eq("user_id", ...).eq("active", true)
+  const guidesActiveEq = vi.fn(async () => ({
+    data: options.guidesError ? null : (options.guides ?? []),
+    error: options.guidesError ?? null,
+  }));
+  const guidesUserEq = vi.fn(() => ({ eq: guidesActiveEq }));
+  const guidesSelect = vi.fn(() => ({ eq: guidesUserEq }));
+  const from = vi.fn((table: string) => (table === "guides" ? { select: guidesSelect } : { select }));
   return {
     client: {
       auth: { getClaims: vi.fn(async () => ({ data: options.claims ? { claims: options.claims } : null, error: null })) },
@@ -218,6 +227,9 @@ function fakeSupabase(options: {
     from,
     select,
     eq,
+    guidesSelect,
+    guidesUserEq,
+    guidesActiveEq,
   };
 }
 
@@ -265,6 +277,54 @@ describe("loadOperatorContext (I/O wrapper)", () => {
     const state = await loadOperatorContext({ supabase: fake.client as never, readCookie: () => undefined, writeCookie: vi.fn() });
     expect(state.user?.passwordSetAt).toBeNull();
     expect(state.context).toBeNull();
+  });
+
+  it("does not query guides for a user without a guía membership", async () => {
+    const fake = fakeSupabase({
+      claims,
+      rows: [{ role: "administrador", created_at: "2026-01-01T00:00:00Z", operator: operatorRow(A) }],
+    });
+    const state = await loadOperatorContext({ supabase: fake.client as never, readCookie: () => undefined, writeCookie: vi.fn() });
+    expect(state.context?.guideId).toBeUndefined();
+    expect(fake.from).not.toHaveBeenCalledWith("guides");
+  });
+
+  it("feeds the user's active guide records into guideId for a guía context (R19, KTD13)", async () => {
+    const G_A = "33333333-3333-4333-8333-333333333333";
+    const G_B = "44444444-4444-4444-8444-444444444444";
+    const rows = [
+      { role: "guia", created_at: "2026-01-01T00:00:00Z", operator: operatorRow(A) },
+      { role: "reservas", created_at: "2026-02-01T00:00:00Z", operator: operatorRow(B) },
+    ];
+    const guides = [
+      { id: G_A, operator_id: A },
+      { id: G_B, operator_id: B },
+    ];
+    const inA = fakeSupabase({ claims, rows, guides });
+    const stateA = await loadOperatorContext({ supabase: inA.client as never, readCookie: () => `${U}:${A}`, writeCookie: vi.fn() });
+    expect(inA.from).toHaveBeenCalledWith("guides");
+    expect(inA.guidesSelect).toHaveBeenCalledWith("id, operator_id");
+    expect(inA.guidesUserEq).toHaveBeenCalledWith("user_id", U);
+    expect(inA.guidesActiveEq).toHaveBeenCalledWith("active", true);
+    expect(stateA.context).toMatchObject({ role: "guia", guideId: G_A });
+
+    // The staff context in B never carries a guide id, even with a guide row in B.
+    const inB = fakeSupabase({ claims, rows, guides });
+    const stateB = await loadOperatorContext({ supabase: inB.client as never, readCookie: () => `${U}:${B}`, writeCookie: vi.fn() });
+    expect(stateB.context?.role).toBe("reservas");
+    expect(stateB.context?.guideId).toBeUndefined();
+  });
+
+  it("keeps a guía context without a guide id when the guide lookup fails", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const fake = fakeSupabase({
+      claims,
+      rows: [{ role: "guia", created_at: "2026-01-01T00:00:00Z", operator: operatorRow(A) }],
+      guidesError: { code: "XX000", message: "boom" },
+    });
+    const state = await loadOperatorContext({ supabase: fake.client as never, readCookie: () => undefined, writeCookie: vi.fn() });
+    expect(state.context?.role).toBe("guia");
+    expect(state.context?.guideId).toBeUndefined();
   });
 
   it("fails closed when the memberships query errors", async () => {
