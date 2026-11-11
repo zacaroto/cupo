@@ -193,6 +193,16 @@ jobs:
             echo "::notice title=Migration preflight skipped::SUPABASE_ACCESS_TOKEN_DEV, SUPABASE_DB_PASSWORD_DEV (secrets) or SUPABASE_PROJECT_REF_DEV (variable) is not available; the preflight against cupo-dev did not run."
             exit 0
           fi
+          # Secrets pasted into a prompt can carry a trailing newline or spaces.
+          # Strip whitespace, then check the shape without printing the value.
+          SUPABASE_ACCESS_TOKEN=$(printf '%s' "$SUPABASE_ACCESS_TOKEN" | tr -d '[:space:]')
+          export SUPABASE_ACCESS_TOKEN
+          if ! printf '%s' "$SUPABASE_ACCESS_TOKEN" | grep -qE '^sbp_[a-f0-9]{40}$'; then
+            len=${#SUPABASE_ACCESS_TOKEN}
+            prefix_ok=no; case "$SUPABASE_ACCESS_TOKEN" in sbp_*) prefix_ok=yes ;; esac
+            echo "::error title=SUPABASE_ACCESS_TOKEN_DEV is malformed::Expected sbp_ followed by 40 hex characters (44 total). Got length $len, sbp_ prefix: $prefix_ok. Re-set the secret with only the token, no quotes."
+            exit 1
+          fi
           supabase link --project-ref "$SUPABASE_PROJECT_REF" --yes
           echo "::group::supabase migration list --remote"
           supabase migration list --remote
