@@ -132,6 +132,36 @@ jobs:
           supabase migration list --remote
           supabase db push --remote --yes
 
+      # Supabase's free tier rejects email template changes while the project
+      # uses the default email provider (issue #13). Until custom SMTP is set up
+      # on cupo-dev, strip the [auth.email.template.*] sections from the copy of
+      # config.toml on the runner; the local stack keeps them. Set the repository
+      # variable SUPABASE_DEV_SMTP_CONFIGURED=true to push the templates again.
+      - name: Skip email templates without custom SMTP
+        if: steps.config.outputs.configured == 'true' && vars.SUPABASE_DEV_SMTP_CONFIGURED != 'true'
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import re
+          path = "supabase/config.toml"
+          lines = open(path).read().splitlines(keepends=True)
+          out, skipping, removed = [], False, []
+          for line in lines:
+              header = re.match(r"^\[([^\]]+)\]", line)
+              if header:
+                  skipping = header.group(1).startswith("auth.email.template.")
+                  if skipping:
+                      removed.append(header.group(1))
+              if not skipping:
+                  out.append(line)
+          open(path, "w").write("".join(out))
+          print("removed sections:", ", ".join(removed) or "none")
+          PY
+          if grep -q '^\[auth\.email\.template\.' supabase/config.toml; then
+            echo "::error::email template sections are still present"; exit 1
+          fi
+          echo "::notice title=Email templates not pushed::cupo-dev has no custom SMTP, so the token-hash email templates were not pushed (issue #13). Hosted invite, magic-link and recovery emails use Supabase's default links until SUPABASE_DEV_SMTP_CONFIGURED=true."
+
       - name: Push auth config
         if: steps.config.outputs.configured == 'true'
         run: supabase config push --remote --yes
