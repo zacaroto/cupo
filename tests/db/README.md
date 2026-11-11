@@ -8,8 +8,9 @@ local Supabase stack. Files run in series (`--no-file-parallelism`).
   process (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
   `SUPABASE_SECRET_KEY`, plus `CUPO_TEST_DB_URL` for raw SQL), refuses any
   non-local URL and loads `.seed-users.json`.
-- `fixtures.ts` holds the fixed operator ids (same as `supabase/seed.sql`) and
-  the seed user specs; `scripts/seed-users.ts` reads them too.
+- `fixtures.ts` holds the fixed operator, guide and tour ids (same as
+  `supabase/seed.sql`) and the seed user specs; `scripts/seed-users.ts` reads
+  them too.
 - `helpers.ts`: `clientFor(user)`, `adminClient()`, `anonClient()`,
   `expectZeroRows`, `expectSqlState`, `expectTypedError`, `asRole()`,
   `createTestUser` / `deleteTestUser`, `sql()` and the `reconcileSeats()` stub
@@ -35,6 +36,19 @@ local Supabase stack. Files run in series (`--no-file-parallelism`).
   uniqueness, `guide_not_linked` / `guide_has_access`, and the create, edit,
   send-access (account created without an invite mail, magic link only, guía
   lands on the agenda) and deactivate actions.
+- `tours.test.ts` covers U5 tours: the seeded catalog, AE2 for tours,
+  prices, schedules and departures, AE4 for prices (reservas and guía get
+  zero rows), the tour, price and schedule grants and constraints, and the
+  create, edit, price, schedule and archive actions (found-checks, reservas
+  and contabilidad forbidden).
+- `departures.test.ts` covers U5 departures: column grants on server-owned
+  columns, the slot's partial unique index, AE11 for the catalog, archived
+  tours (`tour_archived`), the capacity backstop and its «Hay N lugares
+  vendidos» action state, `starts_at` and the operator timezone recompute,
+  `private.materialize_departure` (two concurrent calls, origin and capacity,
+  slot reuse after a cancel, callers without a booking role), the state
+  machine and `cancel_departure`, AE10 for the guía, the guide-deactivation
+  clear (`guide_inactive`), and the departure actions and slot DAL.
 - `foundation.test.ts` covers the U2 scenarios: AE2 cross-operator reads and
   writes, operator column grants, admin rpc privileges, AE6 last administrador,
   inactive operators, timezone validation, profiles visibility, password sign-in

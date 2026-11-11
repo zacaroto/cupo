@@ -1,29 +1,45 @@
 // Labelled input with an optional hint and an inline, translated validation message.
 type Props = {
   name: string;
+  /** Defaults to `name`; set it when the same field name appears in several forms on one page. */
+  id?: string;
   label: string;
-  type?: "email" | "password" | "text" | "tel";
-  inputMode?: "text" | "numeric" | "email" | "tel";
+  type?: "email" | "password" | "text" | "tel" | "date" | "time";
+  inputMode?: "text" | "numeric" | "decimal" | "email" | "tel";
   autoComplete?: string;
   required?: boolean;
   defaultValue?: string;
   hint?: string;
   error?: string;
+  placeholder?: string;
 };
 
-export function TextField({ name, label, type = "text", inputMode, autoComplete, required, defaultValue, hint, error }: Props) {
-  const errorId = `${name}-error`;
-  const hintId = `${name}-hint`;
+export function TextField({
+  name,
+  id = name,
+  label,
+  type = "text",
+  inputMode,
+  autoComplete,
+  required,
+  defaultValue,
+  hint,
+  error,
+  placeholder,
+}: Props) {
+  const errorId = `${id}-error`;
+  const hintId = `${id}-hint`;
   const describedBy = [hint ? hintId : null, error ? errorId : null].filter(Boolean).join(" ") || undefined;
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={name} className="text-small font-medium text-text">
+      <label htmlFor={id} className="text-small font-medium text-text">
         {label}
       </label>
       <input
-        id={name}
+        id={id}
         name={name}
         type={type}
+        placeholder={placeholder}
         inputMode={inputMode}
         autoComplete={autoComplete}
         required={required}

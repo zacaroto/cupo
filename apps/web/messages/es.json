@@ -221,7 +221,7 @@
     "guide_has_access": "El guía tiene acceso con otra cuenta. Quitá ese acceso desde Equipo antes de enviar uno nuevo.",
     "email_failed": "No pudimos enviar el correo. Intentá de nuevo en unos minutos.",
     "guide_email_required": "Agregá un correo válido al guía para enviarle el acceso.",
-    "guide_inactive": "El guía está inactivo. Reactivalo para enviarle el acceso."
+    "guide_inactive": "El guía está inactivo. Reactivalo primero."
   },
   "customers": {
     "title": "Clientes",
@@ -277,6 +277,193 @@
       "phoneInvalid": "Ingresá un teléfono válido: números, espacios y los signos + ( ) - .",
       "localeInvalid": "Elegí un idioma de la lista.",
       "customerInvalid": "El cliente no es válido."
+    }
+  },
+  "tours": {
+    "title": "Tours",
+    "description": "Los tours que vende el operador, con sus precios, horarios semanales y salidas.",
+    "new": "Nuevo tour",
+    "newTitle": "Nuevo tour",
+    "newDescription": "Después de crearlo vas a poder cargar los precios y los horarios semanales.",
+    "back": "Volver a tours",
+    "edit": "Datos del tour",
+    "create": "Crear tour",
+    "save": "Guardar cambios",
+    "saved": "Cambios guardados.",
+    "none": "—",
+    "empty": "Todavía no hay tours.",
+    "showArchived": "Mostrar también los archivados",
+    "hideArchived": "Ocultar los archivados",
+    "archivedNotice": "Este tour está archivado: no admite salidas ni reservas nuevas. Lo existente no cambia.",
+    "minutes": "{count, plural, one {# minuto} other {# minutos}}",
+    "fields": {
+      "name": "Nombre",
+      "description": "Descripción",
+      "duration": "Duración",
+      "durationMinutes": "Duración en minutos",
+      "durationHint": "Por ejemplo, 180 para tres horas.",
+      "defaultCapacity": "Capacidad",
+      "defaultCapacityHint": "Lugares por salida. Cada salida copia este número al crearse.",
+      "meetingPoint": "Punto de encuentro",
+      "directPrice": "Precio directo",
+      "status": "Estado"
+    },
+    "status": {
+      "active": "Activo",
+      "archived": "Archivado"
+    },
+    "channels": {
+      "direct": "Directo",
+      "getyourguide": "GetYourGuide",
+      "viator": "Viator",
+      "whatsapp": "WhatsApp"
+    },
+    "prices": {
+      "title": "Precios por canal",
+      "description": "Precio por persona. Solo administración y contabilidad ven los precios.",
+      "required": "Obligatorio para reservar",
+      "missing": "Sin precio",
+      "amount": "Precio",
+      "currency": "Moneda",
+      "save": "Guardar precio",
+      "saved": "Precio guardado.",
+      "formLabel": "Precio del canal {channel}"
+    },
+    "schedules": {
+      "title": "Horarios semanales",
+      "description": "Horas locales en {timezone}. Las salidas de estos horarios se crean con la primera reserva.",
+      "empty": "Todavía no hay horarios.",
+      "weekday": "Día",
+      "startTime": "Hora de salida",
+      "capacity": "Capacidad",
+      "validity": "Vigencia",
+      "actions": "Acciones",
+      "defaultCapacity": "{count} (la del tour)",
+      "range": "Del {from} al {to}",
+      "openEnded": "Desde el {from}",
+      "remove": "Quitar",
+      "removeConfirm": "¿Quitar este horario? Las salidas ya creadas no cambian.",
+      "add": "Agregar horario",
+      "added": "Horario agregado.",
+      "capacityOverride": "Capacidad (opcional)",
+      "capacityOverrideHint": "Vacío usa la capacidad del tour.",
+      "validFrom": "Vigente desde",
+      "validTo": "Vigente hasta (opcional)",
+      "validToHint": "Vacío no tiene fecha de fin."
+    },
+    "slots": {
+      "title": "Salidas por fecha",
+      "description": "Horarios del día elegido y salidas ya creadas, con los lugares disponibles.",
+      "date": "Fecha",
+      "show": "Ver",
+      "empty": "No hay horarios ni salidas ese día.",
+      "notCreated": "Sin crear",
+      "open": "Ver salida",
+      "create": "Crear salida"
+    },
+    "upcoming": {
+      "title": "Próximas salidas",
+      "empty": "No hay salidas en las próximas dos semanas."
+    },
+    "archive": {
+      "title": "Archivo",
+      "activeDescription": "Archivar oculta el tour de las listas para reservar y bloquea salidas y reservas nuevas. Lo existente no cambia.",
+      "archivedDescription": "Restaurarlo lo vuelve a mostrar para crear salidas y reservas.",
+      "archive": "Archivar tour",
+      "restore": "Restaurar tour",
+      "confirm": "¿Archivar {name}? No admitirá salidas ni reservas nuevas."
+    },
+    "validation": {
+      "nameRequired": "Ingresá el nombre.",
+      "nameTooLong": "Usá como máximo 120 caracteres.",
+      "descriptionTooLong": "Usá como máximo 2000 caracteres.",
+      "durationInvalid": "Ingresá los minutos, un número entero entre 1 y 43200.",
+      "capacityInvalid": "Ingresá un número entero entre 1 y 10000.",
+      "meetingPointTooLong": "Usá como máximo 300 caracteres.",
+      "idInvalid": "El registro no es válido.",
+      "channelInvalid": "El canal no es válido.",
+      "currencyInvalid": "Elegí una moneda de la lista.",
+      "priceInvalid": "Ingresá un precio válido, por ejemplo 125.50.",
+      "weekdayInvalid": "Elegí un día de la lista.",
+      "timeInvalid": "Ingresá una hora válida.",
+      "dateInvalid": "Ingresá una fecha válida.",
+      "validToBeforeFrom": "La fecha de fin no puede ser anterior a la de inicio.",
+      "scheduleTaken": "Ya hay un horario ese día a esa hora."
+    }
+  },
+  "departures": {
+    "title": "Salidas",
+    "description": "Salidas por fecha con su capacidad y lugares vendidos. Fechas y horas locales en {timezone}.",
+    "new": "Nueva salida",
+    "newDescription": "Una salida fuera de los horarios semanales, o adelantada para asignarle guía antes de la primera reserva.",
+    "noTours": "No hay tours activos. Creá uno en Tours primero.",
+    "empty": "No hay salidas con estos filtros.",
+    "hasMore": "Se muestran las primeras {count}. Acotá las fechas para ver otras.",
+    "back": "Volver a salidas",
+    "details": "Datos de la salida",
+    "edit": "Editar salida",
+    "none": "—",
+    "full": "Completa",
+    "seats": "{booked} de {capacity}",
+    "filters": {
+      "label": "Filtrar salidas",
+      "from": "Desde",
+      "to": "Hasta",
+      "tour": "Tour",
+      "allTours": "Todos los tours",
+      "status": "Estado",
+      "allStatuses": "Todos los estados",
+      "submit": "Filtrar"
+    },
+    "fields": {
+      "date": "Fecha",
+      "startTime": "Hora",
+      "tour": "Tour",
+      "status": "Estado",
+      "seats": "Vendidos",
+      "available": "Disponibles",
+      "guide": "Guía",
+      "capacity": "Capacidad",
+      "origin": "Origen",
+      "startsAt": "Inicio"
+    },
+    "status": {
+      "scheduled": "Programada",
+      "closed": "Cerrada",
+      "cancelled": "Cancelada"
+    },
+    "origin": {
+      "schedule": "Horario semanal",
+      "ad_hoc": "Creada a mano"
+    },
+    "form": {
+      "create": "Crear salida",
+      "save": "Guardar cambios",
+      "saved": "Cambios guardados.",
+      "chooseTour": "Elegí un tour",
+      "noGuide": "Sin guía",
+      "capacityHint": "Vacío usa la capacidad del tour.",
+      "capacityBelowBooked": "Hay {count, plural, one {# lugar vendido} other {# lugares vendidos}}: la capacidad no puede ser menor.",
+      "inactiveGuide": "{name} (inactivo)"
+    },
+    "lifecycle": {
+      "title": "Estado de la salida",
+      "close": "Cerrar salida",
+      "closeDescription": "Cerrar la salida impide reservas nuevas. Las reservas existentes se mantienen.",
+      "closeConfirm": "¿Cerrar la salida? No se puede volver a abrir.",
+      "cancel": "Cancelar salida",
+      "cancelDescription": "Cancelar la salida cancela también sus reservas activas. No se puede deshacer.",
+      "cancelConfirm": "¿Cancelar la salida y sus reservas activas? No se puede deshacer.",
+      "cancelledNotice": "La salida está cancelada. Ese horario quedó libre para una salida nueva."
+    },
+    "validation": {
+      "tourRequired": "Elegí un tour.",
+      "dateInvalid": "Ingresá una fecha válida.",
+      "timeInvalid": "Ingresá una hora válida.",
+      "capacityInvalid": "Ingresá un número entero entre 1 y 10000.",
+      "guideInvalid": "Elegí un guía de la lista.",
+      "idInvalid": "El registro no es válido.",
+      "slotTaken": "Ya hay una salida de este tour en esa fecha y hora."
     }
   }
 }
