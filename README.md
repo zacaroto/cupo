@@ -304,7 +304,8 @@ when `SUPABASE_ACCESS_TOKEN_DEV`, `SUPABASE_DB_PASSWORD_DEV` and
 | `SUPABASE_ACCESS_TOKEN_DEV` | secret | repository | PR preflight, `deploy-dev` (CI account in the dev organization) | present |
 | `SUPABASE_DB_PASSWORD_DEV` | secret | repository | preflight, `deploy-dev` (link, dump, push) | present |
 | `SUPABASE_PROJECT_REF_DEV` | variable | repository | preflight, `deploy-dev`, `bootstrap-operator` (dev) | present (`lnyjvnqhpwktxptxopvy`) |
-| `SUPABASE_SECRET_KEY_DEV` | secret | repository (or `development` environment) | `bootstrap-operator` with `target = dev` | missing |
+| `SUPABASE_SECRET_KEY_DEV` | secret | repository (or `development` environment) | `bootstrap-operator` with `target = dev`, `seed-dev-accounts` | missing |
+| `SUPABASE_DEV_SEED_PASSWORD` | secret | repository | `seed-dev-accounts` (shared password of the cupo-dev test accounts; at least 10 characters with letters and digits) | missing |
 | `SUPABASE_ACCESS_TOKEN_PROD` | secret | `production` environment | `deploy-prod` | Phase 2 |
 | `SUPABASE_DB_PASSWORD_PROD` | secret | `production` environment | `deploy-prod` | Phase 2 |
 | `SUPABASE_PROJECT_REF_PROD` | variable | `production` environment | `deploy-prod`, `bootstrap-operator` (prod) | Phase 2 |
@@ -341,6 +342,25 @@ node scripts/bootstrap-operator.ts --name "Tours X" --slug tours-x \
   last one, including deleting their auth user, is rejected with
   `last_administrador`. Deactivating the operator (`status = 'inactive'`,
   service role only) releases the rule.
+
+### Test accounts on cupo-dev
+
+Hosted email cannot use the token-hash templates until custom SMTP exists
+(issue #13), so previews are tested with fixed password accounts (issue #15).
+Run them from GitHub: Actions, `db-deploy`, Run workflow, action
+`seed-dev-accounts`. The job runs `scripts/seed-hosted-dev.ts`, which:
+
+- creates the operators `demo-a` (Costa Rica, USD) and `demo-b` (Mexico, MXN);
+- creates or updates the six accounts of `tests/db/fixtures.ts`
+  (`admin-a`, `reservas-a`, `contabilidad-a`, `guia-a`, `admin-ab` in both
+  operators, `reservas-b`, all `@cupo.test`), confirmed, with the password in
+  `SUPABASE_DEV_SEED_PASSWORD`;
+- is idempotent, runs only inside GitHub Actions, refuses any URL other than
+  `cupo-dev`, and never prints the password (this repository is public, so
+  Actions logs are public).
+
+Rotating the secret and running the job again resets every account's
+password.
 
 ### Hosted project status
 
