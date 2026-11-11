@@ -222,5 +222,61 @@
     "email_failed": "We could not send the email. Try again in a few minutes.",
     "guide_email_required": "Add a valid email to the guide to send access.",
     "guide_inactive": "The guide is inactive. Reactivate them to send access."
+  },
+  "customers": {
+    "title": "Customers",
+    "descriptionFull": "Contact details of {operator}'s customers.",
+    "descriptionMasked": "You see shortened names. Contact details are visible to administration and bookings staff only.",
+    "search": {
+      "label": "Search customers",
+      "placeholderFull": "Name, email or phone",
+      "placeholderMasked": "Name",
+      "submit": "Search",
+      "clear": "Clear"
+    },
+    "list": {
+      "caption": "Customers of {operator}",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "locale": "Language",
+      "actions": "Actions",
+      "edit": "Edit",
+      "editLabel": "Edit {name}",
+      "noValue": "None",
+      "noContact": "No contact",
+      "empty": "No customers yet.",
+      "noResults": "No customer matches “{query}”.",
+      "hasMore": "Showing the first {count}. Refine the search to see others."
+    },
+    "fields": {
+      "name": "Full name",
+      "emailOptional": "Email (optional)",
+      "phoneOptional": "Phone (optional)",
+      "preferredLocale": "Customer language"
+    },
+    "locales": {
+      "operatorDefault": "Operator language",
+      "es": "Spanish",
+      "en": "English"
+    },
+    "form": {
+      "createTitle": "New customer",
+      "editTitle": "Edit customer",
+      "create": "Create customer",
+      "save": "Save changes",
+      "cancel": "Cancel",
+      "created": "Customer created: {name}.",
+      "incompleteHint": "Without an email or phone, this customer's reservations are flagged as having incomplete data."
+    },
+    "validation": {
+      "nameRequired": "Enter the customer's name.",
+      "nameTooLong": "Use at most 200 characters.",
+      "emailInvalid": "Enter a valid email.",
+      "emailTaken": "A customer with that email already exists.",
+      "phoneInvalid": "Enter a valid phone: digits, spaces and the signs + ( ) - .",
+      "localeInvalid": "Pick a language from the list.",
+      "customerInvalid": "The customer is not valid."
+    }
   }
 }

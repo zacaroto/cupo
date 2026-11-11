@@ -37,7 +37,47 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "guides": {
+            "customer_display": {
+                  Row: {
+                    "created_at": string,"customer_id": string,"display_name": string,"operator_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"customer_id": string,"display_name": string,"operator_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"customer_id"?: string,"display_name"?: string,"operator_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "customer_display_customer_fkey"
+      columns: ["operator_id","customer_id"]
+isOneToOne: false
+      referencedRelation: "customers"
+      referencedColumns: ["operator_id","id"]
+    }
+                  ]
+                },"customers": {
+                  Row: {
+                    "created_at": string,"email": string | null,"id": string,"name": string,"operator_id": string,"phone": string | null,"preferred_locale": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"email"?: string | null,"id"?: string,"name": string,"operator_id": string,"phone"?: string | null,"preferred_locale"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"email"?: string | null,"id"?: string,"name"?: string,"operator_id"?: string,"phone"?: string | null,"preferred_locale"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "customers_operator_id_fkey"
+      columns: ["operator_id"]
+isOneToOne: false
+      referencedRelation: "operators"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"guides": {
                   Row: {
                     "active": boolean,"created_at": string,"email": string | null,"id": string,"languages": (string)[],"max_daily_hours": number | null,"name": string,"operator_id": string,"phone": string | null,"specialties": (string)[],"updated_at": string,"user_id": string | null
                   }
