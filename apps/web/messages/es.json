@@ -119,5 +119,61 @@
     "same_password": "La contraseña nueva debe ser distinta de la actual.",
     "rate_limited": "Demasiados intentos. Esperá un momento e intentá de nuevo.",
     "link_invalid": "El enlace no es válido o ya venció. Pedí uno nuevo."
+  },
+  "customers": {
+    "title": "Clientes",
+    "descriptionFull": "Datos de contacto de los clientes de {operator}.",
+    "descriptionMasked": "Ves nombres abreviados. Los datos de contacto solo los ven administración y reservas.",
+    "search": {
+      "label": "Buscar clientes",
+      "placeholderFull": "Nombre, correo o teléfono",
+      "placeholderMasked": "Nombre",
+      "submit": "Buscar",
+      "clear": "Limpiar"
+    },
+    "list": {
+      "caption": "Clientes de {operator}",
+      "name": "Nombre",
+      "email": "Correo",
+      "phone": "Teléfono",
+      "locale": "Idioma",
+      "actions": "Acciones",
+      "edit": "Editar",
+      "editLabel": "Editar a {name}",
+      "noValue": "Sin dato",
+      "noContact": "Sin contacto",
+      "empty": "Todavía no hay clientes.",
+      "noResults": "Ningún cliente coincide con «{query}».",
+      "hasMore": "Se muestran los primeros {count}. Refiná la búsqueda para ver otros."
+    },
+    "fields": {
+      "name": "Nombre completo",
+      "emailOptional": "Correo (opcional)",
+      "phoneOptional": "Teléfono (opcional)",
+      "preferredLocale": "Idioma del cliente"
+    },
+    "locales": {
+      "operatorDefault": "Idioma del operador",
+      "es": "Español",
+      "en": "Inglés"
+    },
+    "form": {
+      "createTitle": "Nuevo cliente",
+      "editTitle": "Editar cliente",
+      "create": "Crear cliente",
+      "save": "Guardar cambios",
+      "cancel": "Cancelar",
+      "created": "Cliente creado: {name}.",
+      "incompleteHint": "Sin correo ni teléfono, las reservas de este cliente quedan marcadas con datos incompletos."
+    },
+    "validation": {
+      "nameRequired": "Ingresá el nombre del cliente.",
+      "nameTooLong": "Usá como máximo 200 caracteres.",
+      "emailInvalid": "Ingresá un correo válido.",
+      "emailTaken": "Ya hay un cliente con ese correo.",
+      "phoneInvalid": "Ingresá un teléfono válido: números, espacios y los signos + ( ) - .",
+      "localeInvalid": "Elegí un idioma de la lista.",
+      "customerInvalid": "El cliente no es válido."
+    }
   }
 }

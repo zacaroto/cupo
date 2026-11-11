@@ -42,6 +42,17 @@ describe("permission map (KTD4)", () => {
     for (const action of denied) expect(can("reservas", action), action).toBe(false);
   });
 
+  it("gives full customer data to administrador and reservas only; masked names to contabilidad (R11, KTD4)", () => {
+    const full = ROLES.filter((role) => can(role, "customers.read_full")).sort();
+    expect(full).toEqual(["administrador", "reservas"]);
+    expect(ROLES.filter((role) => can(role, "customers.write")).sort()).toEqual(["administrador", "reservas"]);
+    expect(ROLES.filter((role) => can(role, "customers.read")).sort()).toEqual(["administrador", "contabilidad", "reservas"]);
+    // Every role that reads full data or writes also opens the customers section.
+    for (const role of ROLES) {
+      if (can(role, "customers.read_full") || can(role, "customers.write")) expect(can(role, "customers.read"), role).toBe(true);
+    }
+  });
+
   it("only lists known actions and no duplicates", () => {
     for (const role of ROLES) {
       const list = PERMISSIONS[role];

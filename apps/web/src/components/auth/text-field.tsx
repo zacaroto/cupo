@@ -2,7 +2,7 @@
 type Props = {
   name: string;
   label: string;
-  type?: "email" | "password" | "text";
+  type?: "email" | "password" | "text" | "tel";
   autoComplete?: string;
   required?: boolean;
   defaultValue?: string;
