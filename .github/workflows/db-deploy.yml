@@ -19,7 +19,7 @@ name: db-deploy
 # "GitHub secrets and variables"). `--include-seed` is never passed. CLI 3.x
 # flags: `--remote` replaces the former `--linked`; `link`, `db dump`, `db push`
 # and `migration list` read SUPABASE_ACCESS_TOKEN and SUPABASE_DB_PASSWORD from
-# the environment; `config push` exists in 3.1.0 (`supabase config push --help`).
+# the environment; `config push` exists in 3.1.0 but has no `--dry-run`.
 
 on:
   push:
@@ -174,7 +174,8 @@ jobs:
         run: |
           set -euo pipefail
           supabase migration list --remote
-          supabase config push --remote --dry-run
+          # CLI 3.1.0 has no `config push --dry-run`; the push step above prints
+          # the diff it applied (issue #18).
 
   deploy-prod:
     name: deploy-prod
