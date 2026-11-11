@@ -11,6 +11,8 @@ export type ErrorState = {
   error: ActionErrorCode;
   /** Field name to message key (Zod issues), for inline form errors. */
   fieldErrors?: Record<string, string>;
+  /** The submitted text fields, so a form can show them again after React resets it (never passwords). */
+  values?: Record<string, string>;
 };
 
 export type ActionState<T = undefined> =
@@ -102,4 +104,9 @@ export function validationState(error: ZodError): ErrorState {
     fieldErrors[field] ??= issue.message;
   }
   return { status: "error", error: "invalid", fieldErrors };
+}
+
+/** `state` carrying the submitted text fields back to the form. */
+export function withValues(state: ErrorState, values: Record<string, string>): ErrorState {
+  return { ...state, values };
 }

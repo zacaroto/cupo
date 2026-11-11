@@ -96,6 +96,105 @@
       "description": "Esta sección llega en una próxima etapa."
     }
   },
+  "members": {
+    "title": "Equipo",
+    "description": "Invitá al equipo y administrá sus roles. Los guías reciben su acceso desde su ficha en Guías.",
+    "invite": {
+      "title": "Invitar a alguien del equipo",
+      "submit": "Enviar invitación",
+      "sent": "Listo. Enviamos un correo de acceso."
+    },
+    "fields": {
+      "email": "Correo electrónico",
+      "role": "Rol"
+    },
+    "table": {
+      "caption": "Miembros del operador",
+      "person": "Persona",
+      "role": "Rol",
+      "since": "Desde",
+      "actions": "Acciones",
+      "you": "Vos",
+      "noName": "Sin nombre",
+      "guideOf": "Guía: {name}",
+      "empty": "Todavía no hay miembros."
+    },
+    "actions": {
+      "roleLabel": "Rol de {name}",
+      "changeRole": "Cambiar",
+      "roleChanged": "Rol actualizado.",
+      "resend": "Reenviar acceso",
+      "resent": "Correo enviado.",
+      "remove": "Quitar",
+      "removeConfirm": "¿Quitar el acceso de {name} a este operador?"
+    },
+    "validation": {
+      "emailRequired": "Ingresá un correo.",
+      "emailInvalid": "Ingresá un correo válido.",
+      "roleInvalid": "Elegí un rol de la lista.",
+      "idInvalid": "El registro no es válido."
+    }
+  },
+  "guides": {
+    "title": "Guías",
+    "description": "Registro de guías del operador.",
+    "empty": "Todavía no hay guías.",
+    "new": "Agregar guía",
+    "create": "Crear guía",
+    "save": "Guardar cambios",
+    "saved": "Cambios guardados.",
+    "back": "Volver a guías",
+    "none": "—",
+    "edit": "Datos del guía",
+    "fields": {
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "phone": "Teléfono",
+      "languages": "Idiomas",
+      "languagesHint": "Separados por coma, por ejemplo: es, en",
+      "specialties": "Especialidades",
+      "specialtiesHint": "Separadas por coma",
+      "maxDailyHours": "Horas máximas por día",
+      "status": "Estado",
+      "access": "Acceso"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "access": {
+      "title": "Acceso a cupo",
+      "none": "Sin cuenta. Enviá el acceso y el guía entra con un enlace por correo, sin contraseña.",
+      "linked": "Tiene cuenta, pero no tiene acceso a este operador.",
+      "granted": "Tiene acceso como guía y ve solo sus salidas.",
+      "inactive": "Reactivá al guía para enviarle el acceso.",
+      "send": "Enviar acceso",
+      "resend": "Reenviar enlace",
+      "sent": "Enviamos el enlace de acceso.",
+      "emailRequired": "Agregá un correo al guía para enviarle el acceso.",
+      "yes": "Con acceso",
+      "no": "Sin acceso"
+    },
+    "activation": {
+      "title": "Estado",
+      "activeDescription": "El guía aparece para asignar salidas.",
+      "inactiveDescription": "El guía no aparece para asignar salidas y no tiene acceso.",
+      "deactivate": "Desactivar guía",
+      "deactivateConfirm": "¿Desactivar a {name}? Pierde el acceso a cupo.",
+      "reactivate": "Reactivar guía"
+    },
+    "validation": {
+      "nameRequired": "Ingresá el nombre.",
+      "nameTooLong": "Usá como máximo 120 caracteres.",
+      "emailRequired": "Ingresá un correo.",
+      "emailInvalid": "Ingresá un correo válido.",
+      "phoneInvalid": "Usá solo números, espacios y + ( ) - .",
+      "listTooLong": "Usá como máximo 20 elementos.",
+      "listItemTooLong": "Cada elemento puede tener hasta 40 caracteres.",
+      "hoursInvalid": "Ingresá un número entero entre 1 y 24.",
+      "idInvalid": "El registro no es válido."
+    }
+  },
   "errors": {
     "unauthenticated": "Tu sesión venció. Entrá de nuevo.",
     "forbidden": "No tenés permiso para hacer esto.",
@@ -118,6 +217,10 @@
     "weak_password": "Elegí una contraseña más segura.",
     "same_password": "La contraseña nueva debe ser distinta de la actual.",
     "rate_limited": "Demasiados intentos. Esperá un momento e intentá de nuevo.",
-    "link_invalid": "El enlace no es válido o ya venció. Pedí uno nuevo."
+    "link_invalid": "El enlace no es válido o ya venció. Pedí uno nuevo.",
+    "guide_has_access": "El guía tiene acceso con otra cuenta. Quitá ese acceso desde Equipo antes de enviar uno nuevo.",
+    "email_failed": "No pudimos enviar el correo. Intentá de nuevo en unos minutos.",
+    "guide_email_required": "Agregá un correo válido al guía para enviarle el acceso.",
+    "guide_inactive": "El guía está inactivo. Reactivalo para enviarle el acceso."
   }
 }

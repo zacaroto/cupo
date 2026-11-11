@@ -47,3 +47,16 @@ values
   ('0b000000-0000-4000-8000-00000000000b', 'Operator B', 'operator-b', 'America/Mexico_City', 'MXN', 'es', 'active'),
   ('0c000000-0000-4000-8000-00000000000c', 'Operator C', 'operator-c', 'Europe/Madrid', 'EUR', 'en', 'active')
 on conflict (id) do nothing;
+
+-- ============================================================================
+-- guides (u4)
+-- ============================================================================
+-- a1 is linked to the seeded guía user by scripts/seed-users.ts (the guía
+-- membership requires it); a2 and b1 have no account.
+
+insert into public.guides (id, operator_id, name, email, phone, languages, specialties, max_daily_hours)
+values
+  ('9a100000-0000-4000-8000-00000000000a', '0a000000-0000-4000-8000-00000000000a', 'Guía A', 'guia-a@cupo.test', '+506 8888 0001', '{es,en}', '{senderismo}', 8),
+  ('9a200000-0000-4000-8000-00000000000a', '0a000000-0000-4000-8000-00000000000a', 'Guía A sin cuenta', 'guia-a2@cupo.test', null, '{es}', '{}', null),
+  ('9b100000-0000-4000-8000-00000000000b', '0b000000-0000-4000-8000-00000000000b', 'Guía B', 'guia-b@cupo.test', null, '{es}', '{pesca}', 6)
+on conflict (id) do nothing;

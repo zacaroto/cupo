@@ -4,7 +4,8 @@
 //
 // Users are created through the auth admin API (direct inserts into auth.users
 // leave no auth.identities row and break password login) with random
-// passwords written to tests/db/.seed-users.json (git-ignored). Memberships go
+// passwords written to tests/db/.seed-users.json (git-ignored). A guía is
+// linked to its seeded guide first (`admin_seed_guide_user`). Memberships go
 // through the service-role-only `admin_seed_membership` rpc with a null actor,
 // so their audit rows carry `actor_source = 'system'`. Idempotent: an existing
 // user gets its password and metadata reset and its memberships upserted.
@@ -18,6 +19,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@cupo/shared";
 import { assertLocalUrl, loadStackEnv } from "./lib/local-stack.ts";
 import {
+  GUIDES,
   OPERATORS,
   SEED_USERS,
   SEED_USERS_FILE,
@@ -80,6 +82,18 @@ async function main(): Promise<void> {
       if (updated.error) throw new Error(`updateUserById failed for ${spec.email}: ${updated.error.message}`);
     } else {
       throw new Error(`createUser failed for ${spec.email}: ${created.error?.message}`);
+    }
+
+    // A guía membership requires an active guide of that operator linked to
+    // the user (t20_guide_linked), so the seeded guide is linked first.
+    const guideKey = "guide" in spec ? spec.guide : undefined;
+    if (guideKey) {
+      const { error } = await admin.rpc("admin_seed_guide_user", {
+        actor_id: null as unknown as string,
+        guide_id: GUIDES[guideKey].id,
+        user_id: userId,
+      });
+      if (error) throw new Error(`admin_seed_guide_user failed for ${spec.email}: ${error.message}`);
     }
 
     for (const membership of spec.memberships) {

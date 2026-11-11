@@ -46,7 +46,7 @@ export type OperatorContext = {
   user: SessionUser;
   operator: OperatorSummary;
   role: Role;
-  /** The guide record of the user in this operator; only for role guía (filled from U4). */
+  /** The guide record of the user in this operator; only for role guía (R19). */
   guideId?: string;
   /** Every membership of the user, oldest first, for the operator switcher. */
   memberships: ReadonlyArray<{ operatorId: string; operatorName: string; role: Role }>;
@@ -153,6 +153,23 @@ function sessionUserFromClaims(claims: Record<string, unknown> | null | undefine
   };
 }
 
+/**
+ * operator id to guide id for the user's own active guide records (R19, KTD13).
+ * A direct read under RLS: a guía sees only their own guide row
+ * (`private.my_guide_ids()`); a staff member sees their operator's guides, so
+ * the `user_id` filter keeps the result to the user's own records. Only run
+ * when the user holds a guía membership; a failure leaves the guía context
+ * without a guide id, which the guía policies turn into an empty agenda.
+ */
+async function loadGuideIds(supabase: ContextDeps["supabase"], userId: string): Promise<Record<string, string> | undefined> {
+  const { data, error } = await supabase.from("guides").select("id, operator_id").eq("user_id", userId).eq("active", true);
+  if (error) {
+    logger.error("guide lookup failed", { userId, extra: { code: error.code } });
+    return undefined;
+  }
+  return Object.fromEntries((data ?? []).map((guide) => [guide.operator_id, guide.id]));
+}
+
 export type ContextDeps = {
   supabase: Pick<ServerClient, "auth" | "from">;
   readCookie: () => string | undefined;
@@ -194,8 +211,8 @@ export async function loadOperatorContext(deps: ContextDeps): Promise<RequestSta
     });
   }
 
-  // U4 adds the guides table; its lookup feeds `guideIds` here.
-  const { context, cookie } = resolveOperatorContext({ user, memberships, cookieValue: deps.readCookie() });
+  const guideIds = memberships.some((m) => m.role === "guia") ? await loadGuideIds(deps.supabase, user.id) : undefined;
+  const { context, cookie } = resolveOperatorContext({ user, memberships, cookieValue: deps.readCookie(), guideIds });
   if (cookie.kind !== "keep") deps.writeCookie(cookie);
   return { user, context };
 }

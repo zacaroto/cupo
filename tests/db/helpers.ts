@@ -143,7 +143,14 @@ export function asRole<T>(
 /** Creates a throwaway auth user plus memberships the way the seed script does (system actor). */
 export async function createTestUser(
   admin: Client,
-  input: { email: string; fullName?: string; staff?: boolean; memberships?: Array<{ operatorId: string; role: MembershipRole }> },
+  input: {
+    email: string;
+    fullName?: string;
+    staff?: boolean;
+    memberships?: Array<{ operatorId: string; role: MembershipRole }>;
+    /** Guide to link to the new user before the memberships (required for a guía membership, R19). */
+    guideId?: string;
+  },
 ): Promise<{ id: string; email: string; password: string }> {
   const password = randomPassword();
   const { data, error } = await admin.auth.admin.createUser({
@@ -154,6 +161,14 @@ export async function createTestUser(
     app_metadata: input.staff === false ? {} : { password_set_at: new Date().toISOString() },
   });
   if (error || !data.user) throw new Error(`createUser failed for ${input.email}: ${error?.message}`);
+  if (input.guideId) {
+    const { error: linkError } = await admin.rpc("admin_seed_guide_user", {
+      actor_id: null as unknown as string,
+      guide_id: input.guideId,
+      user_id: data.user.id,
+    });
+    if (linkError) throw new Error(`admin_seed_guide_user failed: ${linkError.message}`);
+  }
   for (const membership of input.memberships ?? []) {
     const { error: rpcError } = await admin.rpc("admin_seed_membership", {
       actor_id: null as unknown as string,
