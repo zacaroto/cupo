@@ -1,0 +1,41 @@
+{
+  "common": {
+    "appName": "cupo",
+    "tagline": "Reservas para operadores de tours",
+    "loading": "Cargando…",
+    "language": {
+      "label": "Idioma",
+      "es": "Español",
+      "en": "English"
+    },
+    "actions": {
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "back": "Volver"
+    },
+    "notFound": {
+      "title": "Página no encontrada",
+      "description": "La página que buscas no existe o fue movida."
+    }
+  },
+  "landing": {
+    "eyebrow": "Fase 1",
+    "title": "Administra tus tours y reservas en un solo lugar",
+    "subtitle": "Operadores, equipos, tours con cupo, guías y reservas manuales, con los datos de cada operador aislados por diseño.",
+    "status": "La base multi-operador está en construcción. El acceso llega con la siguiente etapa.",
+    "features": {
+      "operators": {
+        "title": "Un espacio por operador",
+        "description": "Cada operador ve solo sus propios tours, clientes y reservas."
+      },
+      "capacity": {
+        "title": "Cupo bajo control",
+        "description": "Cada salida tiene capacidad y las reservas nunca la superan."
+      },
+      "roles": {
+        "title": "Roles claros",
+        "description": "Administradores, gestores, agentes y guías ven solo lo que necesitan."
+      }
+    }
+  }
+}

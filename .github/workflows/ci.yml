@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # KTD11: lint, typecheck, unit tests, build and the secret-not-bundled grep.
+  # The `db` job (local Supabase stack, pgTAP and the Vitest db project) is added in U2.
+  check:
+    name: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Build
+        run: npm run build -w @cupo/web
+
+      - name: Secret key not bundled
+        # A real Supabase secret key is `sb_secret_` followed by a long base62 body.
+        # @supabase/supabase-js itself contains the bare literal "sb_secret_" in a
+        # startsWith() check, so the bare prefix is not a usable signal once U3
+        # bundles the client; the length requirement is what separates a key from
+        # the library string.
+        run: |
+          if grep -rIEl 'sb_secret_[A-Za-z0-9_-]{20,}' apps/web/.next; then
+            echo "::error::A Supabase secret key is present in the Next.js build output."
+            exit 1
+          fi
+          echo "No secret key found in apps/web/.next"
