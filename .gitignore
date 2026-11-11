@@ -10,3 +10,9 @@ supabase/.temp/
 *.tsbuildinfo
 next-env.d.ts
 tests/db/.seed-users.json
+
+# Vendored agent skills (restore with: npx skills install)
+.agents/
+.claude/skills/
+.taste-skill/
+.superpowers/
