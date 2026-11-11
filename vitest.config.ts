@@ -26,6 +26,9 @@ export default defineConfig({
             "apps/web/src/**/*.test.ts",
             "packages/shared/src/**/*.test.ts",
           ],
+          // next-intl's ESM build imports "next/server" without an extension;
+          // Node's resolver rejects that (next has no exports map), Vite's does not.
+          server: { deps: { inline: ["next-intl"] } },
         },
       },
       {
@@ -40,6 +43,9 @@ export default defineConfig({
           testTimeout: 20_000,
           hookTimeout: 30_000,
           setupFiles: [dbSetup],
+          // tests/db/auth.test.ts drives the real server actions, which import
+          // next-intl navigation (same "next/server" resolution issue as unit).
+          server: { deps: { inline: ["next-intl"] } },
         },
       },
     ],

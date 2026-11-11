@@ -14,6 +14,13 @@ local Supabase stack. Files run in series (`--no-file-parallelism`).
   `expectZeroRows`, `expectSqlState`, `expectTypedError`, `asRole()`,
   `createTestUser` / `deleteTestUser`, `sql()` and the `reconcileSeats()` stub
   (real from U6).
+- `mailpit.ts` reads auth emails from the local mail UI (port 54324) so a test
+  can follow an invite, magic-link or recovery link like a user.
+- `auth.test.ts` covers the U3 scenarios by running the real server actions,
+  the `/auth/confirm` route handler, the `@supabase/ssr` server client and the
+  DAL, with only `next/headers` replaced by an in-memory cookie jar: password
+  sign-in, magic-link and reset parity for unknown emails, the guía link, the
+  invite and set-password gate, AE7, the operator switch and sign-out.
 - `foundation.test.ts` covers the U2 scenarios: AE2 cross-operator reads and
   writes, operator column grants, admin rpc privileges, AE6 last administrador,
   inactive operators, timezone validation, profiles visibility, password sign-in

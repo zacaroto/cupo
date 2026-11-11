@@ -25,10 +25,18 @@ const REDACTED_KEYS = new Set([
   "email",
   "access_token",
   "refresh_token",
+  "authorization",
+  "cookie",
+  "set-cookie",
+  "action_link",
 ]);
 
+/** `*_token`, `*_password` and the Supabase auth cookie `sb-<ref>-auth-token` (and its `.N` chunks). */
+const REDACTED_PATTERNS = [/_token$/, /_password$/, /^sb-.+-auth-token(\.\d+)?$/];
+
 function isRedactedKey(key: string): boolean {
-  return REDACTED_KEYS.has(key.toLowerCase());
+  const lower = key.toLowerCase();
+  return REDACTED_KEYS.has(lower) || REDACTED_PATTERNS.some((pattern) => pattern.test(lower));
 }
 
 function serializeError(error: Error, seen: WeakSet<object>): Record<string, unknown> {

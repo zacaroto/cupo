@@ -81,6 +81,39 @@ describe("logger", () => {
     expect(lastJson(logSpy).extra).toEqual({ Email: "[redacted]", EMAIL: "[redacted]", emailCount: 2 });
   });
 
+  it("redacts transport secrets: auth headers, cookies, *_token, *_password and Supabase auth cookies", () => {
+    logger.info("request", {
+      extra: {
+        Authorization: "Bearer eyJ",
+        cookie: "sb-abc-auth-token=xyz",
+        "Set-Cookie": ["sb-abc-auth-token=xyz; Path=/"],
+        provider_token: "pt",
+        hashed_token: "ht",
+        new_password: "np",
+        action_link: "http://127.0.0.1:54321/auth/v1/verify?token=abc",
+        "sb-lnyjvnqhpwktxptxopvy-auth-token": "base64-session",
+        "sb-lnyjvnqhpwktxptxopvy-auth-token.0": "chunk",
+        token_count: 3,
+        tokenizer: "ok",
+        passwordPolicy: "letters_digits",
+      },
+    });
+    expect(lastJson(logSpy).extra).toEqual({
+      Authorization: "[redacted]",
+      cookie: "[redacted]",
+      "Set-Cookie": "[redacted]",
+      provider_token: "[redacted]",
+      hashed_token: "[redacted]",
+      new_password: "[redacted]",
+      action_link: "[redacted]",
+      "sb-lnyjvnqhpwktxptxopvy-auth-token": "[redacted]",
+      "sb-lnyjvnqhpwktxptxopvy-auth-token.0": "[redacted]",
+      token_count: 3,
+      tokenizer: "ok",
+      passwordPolicy: "letters_digits",
+    });
+  });
+
   it("serializes Error values and redacts inside their causes", () => {
     const cause = { email: "leak@example.com" };
     logger.error("failed", { extra: { err: new Error("nope", { cause }) } });

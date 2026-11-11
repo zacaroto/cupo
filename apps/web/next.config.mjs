@@ -14,14 +14,7 @@ const nextConfig = {
     // Turbopack does not warn about multiple lockfiles.
     root: repoRoot,
   },
-  async redirects() {
-    return [
-      // U1 only: there is no src/proxy.ts yet, so "/" has nothing to send it to
-      // the default locale. U3 ships the proxy (updateSession + handleI18nRouting,
-      // KTD9) which owns locale detection; remove this entry in U3.
-      { source: "/", destination: "/es", permanent: false },
-    ];
-  },
+  // "/" -> "/es" is handled by src/proxy.ts (next-intl, localeDetection off).
 };
 
 export default withNextIntl(nextConfig);

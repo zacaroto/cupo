@@ -5,7 +5,12 @@
     "types": [
       "node"
     ],
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "@/*": [
+        "./apps/web/src/*"
+      ]
+    }
   },
   "include": [
     "tests/**/*.ts",

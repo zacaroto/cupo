@@ -17,26 +17,107 @@
       "title": "Page not found",
       "description": "The page you are looking for does not exist or was moved.",
       "backHome": "Back to home"
+    },
+    "roles": {
+      "administrador": "Administrator",
+      "reservas": "Bookings",
+      "contabilidad": "Accounting",
+      "guia": "Guide"
     }
   },
-  "landing": {
-    "eyebrow": "Phase 1",
-    "title": "Manage your tours and bookings in one place",
-    "subtitle": "Operators, teams, tours with capacity, guides and manual reservations, with every operator's data isolated by design.",
-    "status": "The multi-operator foundation is under construction. Access arrives with the next stage.",
-    "features": {
-      "operators": {
-        "title": "One space per operator",
-        "description": "Each operator sees only its own tours, customers and reservations."
-      },
-      "capacity": {
-        "title": "Capacity under control",
-        "description": "Every departure has a capacity and reservations never exceed it."
-      },
-      "roles": {
-        "title": "Clear roles",
-        "description": "Admins, managers, agents and guides see only what they need."
-      }
+  "auth": {
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "newPassword": "New password",
+      "confirmPassword": "Repeat password"
+    },
+    "login": {
+      "title": "Sign in to cupo",
+      "description": "Staff sign in with a password. Guides receive an access link by email.",
+      "signInWithPassword": "Sign in with password",
+      "sendLink": "Send access link",
+      "linkSent": "If the email exists, we sent a link.",
+      "forgotPassword": "Forgot your password?",
+      "linkInvalid": "The link is invalid or has expired. Request a new one."
+    },
+    "setPassword": {
+      "title": "Choose your password",
+      "description": "You need a password to use cupo. Use at least 10 characters, with letters and digits.",
+      "submit": "Save password"
+    },
+    "resetPassword": {
+      "title": "Reset password",
+      "description": "We will send you a link to choose a new password.",
+      "submit": "Send link",
+      "sent": "If the email exists, we sent a link.",
+      "backToLogin": "Back to sign in"
+    },
+    "noAccess": {
+      "title": "No access",
+      "description": "Your account does not belong to any active operator. Ask an administrator to invite you.",
+      "signedInAs": "Signed in as {email}"
+    },
+    "validation": {
+      "emailRequired": "Enter your email.",
+      "emailInvalid": "Enter a valid email.",
+      "passwordRequired": "Enter your password.",
+      "passwordTooShort": "Use at least 10 characters.",
+      "passwordTooLong": "Use at most 72 characters.",
+      "passwordNeedsLetter": "Include at least one letter.",
+      "passwordNeedsDigit": "Include at least one digit.",
+      "passwordMismatch": "The passwords do not match.",
+      "operatorInvalid": "Pick an operator from the list."
     }
+  },
+  "shell": {
+    "skipToContent": "Skip to content",
+    "operator": "Operator",
+    "switchOperator": "Switch operator",
+    "switch": "Switch",
+    "signOut": "Sign out",
+    "navLabel": "Sections",
+    "nav": {
+      "home": "Home",
+      "reservations": "Reservations",
+      "departures": "Departures",
+      "tours": "Tours",
+      "customers": "Customers",
+      "guides": "Guides",
+      "members": "Team",
+      "agenda": "Agenda"
+    },
+    "home": {
+      "title": "Home",
+      "greeting": "You are working in {operator} as {role}.",
+      "sections": "Sections available to your role"
+    },
+    "placeholder": {
+      "description": "This section arrives in a later stage."
+    }
+  },
+  "errors": {
+    "unauthenticated": "Your session expired. Sign in again.",
+    "forbidden": "You are not allowed to do this.",
+    "not_found": "We could not find what you were looking for.",
+    "invalid": "Check the highlighted fields.",
+    "duplicate": "A record with these details already exists.",
+    "invalid_reference": "One of the selected items is no longer available.",
+    "capacity_below_booked": "Capacity cannot be lower than the seats already booked.",
+    "invalid_timezone": "The time zone is not valid.",
+    "retry": "There was a temporary conflict. Try again.",
+    "unexpected": "Something went wrong. Try again.",
+    "last_administrador": "The operator needs at least one administrator.",
+    "guide_not_linked": "The user is not linked to a guide of this operator.",
+    "capacity_exceeded": "There are not enough seats on this departure.",
+    "departure_not_open": "The departure does not accept reservations.",
+    "tour_archived": "The tour is archived.",
+    "forbidden_transition": "That status change is not allowed.",
+    "price_missing": "The tour has no price for this channel.",
+    "invalid_credentials": "The email or password is not correct.",
+    "weak_password": "Choose a stronger password.",
+    "same_password": "The new password must differ from the current one.",
+    "rate_limited": "Too many attempts. Wait a moment and try again.",
+    "link_invalid": "The link is invalid or has expired. Request a new one."
   }
 }

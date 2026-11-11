@@ -17,26 +17,107 @@
       "title": "Página no encontrada",
       "description": "La página que buscas no existe o fue movida.",
       "backHome": "Volver al inicio"
+    },
+    "roles": {
+      "administrador": "Administrador",
+      "reservas": "Reservas",
+      "contabilidad": "Contabilidad",
+      "guia": "Guía"
     }
   },
-  "landing": {
-    "eyebrow": "Fase 1",
-    "title": "Administra tus tours y reservas en un solo lugar",
-    "subtitle": "Operadores, equipos, tours con cupo, guías y reservas manuales, con los datos de cada operador aislados por diseño.",
-    "status": "La base multi-operador está en construcción. El acceso llega con la siguiente etapa.",
-    "features": {
-      "operators": {
-        "title": "Un espacio por operador",
-        "description": "Cada operador ve solo sus propios tours, clientes y reservas."
-      },
-      "capacity": {
-        "title": "Cupo bajo control",
-        "description": "Cada salida tiene capacidad y las reservas nunca la superan."
-      },
-      "roles": {
-        "title": "Roles claros",
-        "description": "Administradores, gestores, agentes y guías ven solo lo que necesitan."
-      }
+  "auth": {
+    "fields": {
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Repetir contraseña"
+    },
+    "login": {
+      "title": "Entrar a cupo",
+      "description": "El equipo entra con contraseña. Los guías reciben un enlace de acceso por correo.",
+      "signInWithPassword": "Entrar con contraseña",
+      "sendLink": "Enviar enlace de acceso",
+      "linkSent": "Si el correo existe, enviamos un enlace.",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "linkInvalid": "El enlace no es válido o ya venció. Pedí uno nuevo."
+    },
+    "setPassword": {
+      "title": "Elegí tu contraseña",
+      "description": "Necesitás una contraseña para usar cupo. Usá al menos 10 caracteres, con letras y números.",
+      "submit": "Guardar contraseña"
+    },
+    "resetPassword": {
+      "title": "Restablecer contraseña",
+      "description": "Te enviamos un enlace para elegir una contraseña nueva.",
+      "submit": "Enviar enlace",
+      "sent": "Si el correo existe, enviamos un enlace.",
+      "backToLogin": "Volver a entrar"
+    },
+    "noAccess": {
+      "title": "Sin acceso",
+      "description": "Tu cuenta no pertenece a ningún operador activo. Pedile a un administrador que te invite.",
+      "signedInAs": "Sesión iniciada como {email}"
+    },
+    "validation": {
+      "emailRequired": "Ingresá tu correo.",
+      "emailInvalid": "Ingresá un correo válido.",
+      "passwordRequired": "Ingresá tu contraseña.",
+      "passwordTooShort": "Usá al menos 10 caracteres.",
+      "passwordTooLong": "Usá como máximo 72 caracteres.",
+      "passwordNeedsLetter": "Incluí al menos una letra.",
+      "passwordNeedsDigit": "Incluí al menos un número.",
+      "passwordMismatch": "Las contraseñas no coinciden.",
+      "operatorInvalid": "Elegí un operador de la lista."
     }
+  },
+  "shell": {
+    "skipToContent": "Saltar al contenido",
+    "operator": "Operador",
+    "switchOperator": "Cambiar de operador",
+    "switch": "Cambiar",
+    "signOut": "Salir",
+    "navLabel": "Secciones",
+    "nav": {
+      "home": "Inicio",
+      "reservations": "Reservas",
+      "departures": "Salidas",
+      "tours": "Tours",
+      "customers": "Clientes",
+      "guides": "Guías",
+      "members": "Equipo",
+      "agenda": "Agenda"
+    },
+    "home": {
+      "title": "Inicio",
+      "greeting": "Estás trabajando en {operator} como {role}.",
+      "sections": "Secciones disponibles para tu rol"
+    },
+    "placeholder": {
+      "description": "Esta sección llega en una próxima etapa."
+    }
+  },
+  "errors": {
+    "unauthenticated": "Tu sesión venció. Entrá de nuevo.",
+    "forbidden": "No tenés permiso para hacer esto.",
+    "not_found": "No encontramos lo que buscabas.",
+    "invalid": "Revisá los datos marcados.",
+    "duplicate": "Ya existe un registro con esos datos.",
+    "invalid_reference": "Uno de los datos elegidos ya no está disponible.",
+    "capacity_below_booked": "La capacidad no puede ser menor que los lugares reservados.",
+    "invalid_timezone": "La zona horaria no es válida.",
+    "retry": "Hubo un conflicto momentáneo. Intentá de nuevo.",
+    "unexpected": "Algo salió mal. Intentá de nuevo.",
+    "last_administrador": "El operador necesita al menos un administrador.",
+    "guide_not_linked": "El usuario no está vinculado a un guía de este operador.",
+    "capacity_exceeded": "No hay lugares suficientes en esta salida.",
+    "departure_not_open": "La salida no acepta reservas.",
+    "tour_archived": "El tour está archivado.",
+    "forbidden_transition": "Ese cambio de estado no está permitido.",
+    "price_missing": "El tour no tiene precio para este canal.",
+    "invalid_credentials": "El correo o la contraseña no son correctos.",
+    "weak_password": "Elegí una contraseña más segura.",
+    "same_password": "La contraseña nueva debe ser distinta de la actual.",
+    "rate_limited": "Demasiados intentos. Esperá un momento e intentá de nuevo.",
+    "link_invalid": "El enlace no es válido o ya venció. Pedí uno nuevo."
   }
 }
