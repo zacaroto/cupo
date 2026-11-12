@@ -43,6 +43,14 @@ const amount = {
   updated_at: "2026-11-12T14:00:00+00:00",
 };
 
+const notes = {
+  reservation_id: RESERVATION,
+  operator_id: OPERATOR,
+  notes: "Vegetariana",
+  created_at: "2026-11-12T14:00:00+00:00",
+  updated_at: "2026-11-12T14:00:00+00:00",
+};
+
 let nextId = 1;
 
 function event(fields: Partial<AuditEvent> & Pick<AuditEvent, "table_name" | "op" | "at">): AuditEvent {
@@ -188,6 +196,53 @@ describe("buildHistory", () => {
       [T1, "system"],
       [T1, "user"],
     ]);
+  });
+});
+
+describe("buildHistory with notes (U8: reservation_notes is audited)", () => {
+  it("puts the notes of a create between the reservation and the amount, and shows a notes-only edit as an update", () => {
+    const history = buildHistory(
+      [
+        event({ table_name: "reservation_amounts", op: "insert", at: T1, new_record: amount }),
+        event({ table_name: "reservation_notes", op: "insert", at: T1, new_record: notes }),
+        event({ table_name: "reservations", op: "insert", at: T1, new_record: reservation }),
+        event({
+          table_name: "reservation_notes",
+          op: "update",
+          at: T2,
+          old_record: notes,
+          new_record: { ...notes, notes: "Vegetariana, llega tarde", updated_at: T2 },
+        }),
+      ],
+      labels,
+    );
+    expect(history.map((entry) => entry.action)).toEqual(["updated", "created"]);
+    expect(history[0].changes).toEqual([
+      {
+        subject: "notes",
+        field: "notes",
+        before: { kind: "text", value: "Vegetariana" },
+        after: { kind: "text", value: "Vegetariana, llega tarde" },
+      },
+    ]);
+    const subjects = history[1].changes.map((change) => change.subject);
+    expect(subjects.indexOf("notes")).toBeGreaterThan(subjects.lastIndexOf("reservation"));
+    expect(subjects.lastIndexOf("notes")).toBeLessThan(subjects.indexOf("amount"));
+    expect(history[1].changes.find((change) => change.subject === "notes")).toEqual({
+      subject: "notes",
+      field: "notes",
+      before: { kind: "empty" },
+      after: { kind: "text", value: "Vegetariana" },
+    });
+    expect(es.history.fields.notes).toBe("Notas");
+  });
+
+  it("shows notes cleared by update_reservation ('') as empty", () => {
+    const [entry] = buildHistory(
+      [event({ table_name: "reservation_notes", op: "update", at: T3, old_record: notes, new_record: { ...notes, notes: "", updated_at: T3 } })],
+      labels,
+    );
+    expect(entry.changes).toEqual([{ subject: "notes", field: "notes", before: { kind: "text", value: "Vegetariana" }, after: { kind: "empty" } }]);
   });
 });
 

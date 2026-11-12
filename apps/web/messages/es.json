@@ -603,7 +603,7 @@
   },
   "history": {
     "title": "Historial de cambios",
-    "description": "Cada cambio de la reserva y de su monto, con quién lo hizo. Horas en {timezone}.",
+    "description": "Cada cambio de la reserva, de sus notas y de su monto, con quién lo hizo. Horas en {timezone}.",
     "empty": "Todavía no hay cambios registrados.",
     "action": {
       "created": "Reserva creada",
@@ -621,6 +621,7 @@
       "departure_id": "Salida",
       "people": "Personas",
       "customer_id": "Cliente",
+      "notes": "Notas",
       "has_incomplete_data": "Datos incompletos",
       "code": "Código",
       "channel": "Canal",

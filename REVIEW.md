@@ -59,7 +59,16 @@ layers (RLS on `operator_id`, composite foreign keys between business tables,
 - **Every new table** has RLS enabled, policies, explicit grants, an `operator_id`
   index and composite foreign keys to its parents; every new function in `public`
   has an explicit execute revoke and grant; a new `security definer` function
-  needs a reason in the PR and an entry in the enumerated list.
+  needs a reason in the PR and an entry in the enumerated list
+  (`supabase/tests/rls_coverage_test.sql`). New tables and RPCs get their
+  cells in `tests/db/isolation-matrix.test.ts` and `tests/db/role-matrix.test.ts`
+  (the guards fail otherwise).
+- **Before triggers run before RLS `with check`.** A definer `before insert`
+  trigger that reads rows by `new.operator_id` first refuses a session user
+  without the inserting role with the policy's 42501, and raises the composite
+  foreign key's violation itself when the parent is not found under
+  `new.operator_id`; otherwise its errors are an oracle on another operator's
+  rows (`docs/solutions/database/trigger-ownership.md`).
 
 ## Patterns to Enforce
 

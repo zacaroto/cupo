@@ -1,12 +1,12 @@
 // Change history of a reservation (plan U10, R28, R29, KTD6). The database
 // writes `audit.events` on every write path; administradores of the operator
 // read them (RLS), nobody writes them. A reservation's history is every event
-// with `record_id = <reservation id>` from `reservations` and
-// `reservation_amounts` (U6 points the amount rows' record_id at their
-// reservation). The diff is pure and unit-tested: only changed keys, minus
+// with `record_id = <reservation id>` from `reservations`,
+// `reservation_notes` and `reservation_amounts` (the notes and amount rows'
+// record_id falls back to their reservation id). The diff is pure and unit-tested: only changed keys, minus
 // noise; departure and customer ids resolved to labels; the actor resolved
 // through `profiles`. Takes `ctx`, never resolves it (KTD3). Audit rows carry
-// customer data and amounts, so nothing here logs them.
+// customer data, notes and amounts, so nothing here logs them.
 import "server-only";
 import type { Json } from "@cupo/shared/database.types";
 import { normalizeLocalTime } from "@cupo/shared/local-date";
@@ -28,9 +28,16 @@ export type AuditEvent = {
   at: string;
 };
 
-export type HistorySubject = "reservation" | "amount";
+export type HistorySubject = "reservation" | "notes" | "amount";
 
-const SUBJECTS: Readonly<Record<string, HistorySubject>> = { reservations: "reservation", reservation_amounts: "amount" };
+const SUBJECTS: Readonly<Record<string, HistorySubject>> = {
+  reservations: "reservation",
+  reservation_notes: "notes",
+  reservation_amounts: "amount",
+};
+
+/** Within one entry: the reservation's own changes, then its notes, then its amount. */
+const SUBJECT_ORDER: readonly HistorySubject[] = ["reservation", "notes", "amount"];
 
 /** Keys that change on every write or never mean anything to a reader. `created_by` repeats the actor. */
 export const HIDDEN_KEYS: ReadonlySet<string> = new Set(["id", "operator_id", "created_at", "updated_at", "reservation_id", "created_by"]);
@@ -42,6 +49,7 @@ const KEY_ORDER = [
   "departure_id",
   "people",
   "customer_id",
+  "notes",
   "has_incomplete_data",
   "code",
   "channel",
@@ -121,6 +129,8 @@ export function changedKeys(oldRecord: Json | null, newRecord: Json | null): str
 
 function toValue(key: string, value: Json | undefined, row: JsonRecord, other: JsonRecord, labels: HistoryLabels): HistoryValue {
   if (value === null || value === undefined) return { kind: "empty" };
+  // `update_reservation` clears notes by storing ''.
+  if (key === "notes" && value === "") return { kind: "empty" };
   if (key === "departure_id" && typeof value === "string") return { kind: "departure", label: labels.departures.get(value) ?? null };
   if (key === "customer_id" && typeof value === "string") return { kind: "customer", name: labels.customers.get(value) ?? null };
   if (key === "status" && typeof value === "string") return { kind: "status", value };
@@ -168,7 +178,7 @@ function entryAction(events: readonly AuditEvent[]): HistoryAction {
  * Events grouped into history entries, newest first. Events of one
  * transaction share `at` (`now()` is the transaction start) and the actor, so
  * one change (a people edit and the amount it recomputes, a create and its
- * amount snapshot) is one entry, reservation changes before amount changes.
+ * amount snapshot) is one entry: reservation changes, then notes, then amount.
  * Events of other tables are ignored, and an entry left without visible
  * changes is dropped.
  */
@@ -182,7 +192,7 @@ export function buildHistory(events: readonly AuditEvent[], labels: HistoryLabel
   const entries: HistoryEntry[] = [];
   for (const group of groups.values()) {
     const ordered = [...group].sort(
-      (a, b) => Number(SUBJECTS[a.table_name] === "amount") - Number(SUBJECTS[b.table_name] === "amount") || a.id - b.id,
+      (a, b) => SUBJECT_ORDER.indexOf(SUBJECTS[a.table_name]) - SUBJECT_ORDER.indexOf(SUBJECTS[b.table_name]) || a.id - b.id,
     );
     const changes = ordered.flatMap((event) => eventChanges(event, SUBJECTS[event.table_name], labels));
     if (changes.length === 0) continue;

@@ -77,6 +77,8 @@ select results_eq(
 select set_config('request.jwt.claims', '{"sub":"d0000000-0000-4000-8000-0000000000a2","role":"authenticated"}', true);
 select is_empty($q$ select private.my_guide_ids() $q$, 'my_guide_ids() is empty for a user who is not a linked guía');
 reset role;
+-- back to a session without a jwt user (the definer insert guards read auth.uid()).
+select set_config('request.jwt.claims', '{}', true);
 
 -- deactivation revokes the access in the same statement.
 update public.guides set active = false where id = 'd0000000-0000-4000-8000-0000000000b1';
