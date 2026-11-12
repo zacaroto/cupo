@@ -145,6 +145,84 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"reservation_amounts": {
+                  Row: {
+                    "amount_overridden": boolean,"created_at": string,"currency": string,"operator_id": string,"reservation_id": string,"total_minor": number,"unit_price_minor": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_overridden"?: boolean,"created_at"?: string,"currency": string,"operator_id": string,"reservation_id": string,"total_minor": number,"unit_price_minor": number,"updated_at"?: string
+                  }
+                  Update: {
+                    "amount_overridden"?: boolean,"created_at"?: string,"currency"?: string,"operator_id"?: string,"reservation_id"?: string,"total_minor"?: number,"unit_price_minor"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "reservation_amounts_reservation_fkey"
+      columns: ["operator_id","reservation_id"]
+isOneToOne: false
+      referencedRelation: "reservations"
+      referencedColumns: ["operator_id","id"]
+    }
+                  ]
+                },"reservation_notes": {
+                  Row: {
+                    "created_at": string,"notes": string,"operator_id": string,"reservation_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"notes": string,"operator_id": string,"reservation_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"notes"?: string,"operator_id"?: string,"reservation_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "reservation_notes_reservation_fkey"
+      columns: ["operator_id","reservation_id"]
+isOneToOne: false
+      referencedRelation: "reservations"
+      referencedColumns: ["operator_id","id"]
+    }
+                  ]
+                },"reservations": {
+                  Row: {
+                    "cancel_reason": string | null,"channel": Database["public"]['Enums']["channel"],"code": string,"created_at": string,"created_by": string | null,"customer_id": string,"departure_id": string,"external_code": string | null,"has_incomplete_data": boolean,"id": string,"operator_id": string,"people": number,"status": Database["public"]['Enums']["reservation_status"],"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cancel_reason"?: string | null,"channel"?: Database["public"]['Enums']["channel"],"code": string,"created_at"?: string,"created_by"?: string | null,"customer_id": string,"departure_id": string,"external_code"?: string | null,"has_incomplete_data": boolean,"id"?: string,"operator_id": string,"people": number,"status"?: Database["public"]['Enums']["reservation_status"],"updated_at"?: string
+                  }
+                  Update: {
+                    "cancel_reason"?: string | null,"channel"?: Database["public"]['Enums']["channel"],"code"?: string,"created_at"?: string,"created_by"?: string | null,"customer_id"?: string,"departure_id"?: string,"external_code"?: string | null,"has_incomplete_data"?: boolean,"id"?: string,"operator_id"?: string,"people"?: number,"status"?: Database["public"]['Enums']["reservation_status"],"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "reservations_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "reservations_customer_fkey"
+      columns: ["operator_id","customer_id"]
+isOneToOne: false
+      referencedRelation: "customers"
+      referencedColumns: ["operator_id","id"]
+    },{
+      foreignKeyName: "reservations_departure_fkey"
+      columns: ["operator_id","departure_id"]
+isOneToOne: false
+      referencedRelation: "tour_departures"
+      referencedColumns: ["operator_id","id"]
+    },{
+      foreignKeyName: "reservations_operator_id_fkey"
+      columns: ["operator_id"]
+isOneToOne: false
+      referencedRelation: "operators"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"tour_departures": {
                   Row: {
                     "capacity": number,"created_at": string,"date": string,"guide_id": string | null,"id": string,"operator_id": string,"origin": Database["public"]['Enums']["departure_origin"],"seats_booked": number,"start_time": string,"starts_at": string,"status": Database["public"]['Enums']["departure_status"],"tour_id": string,"updated_at": string
@@ -258,6 +336,14 @@ isOneToOne: false
             "admin_bootstrap_operator":
 { Args: { "actor_id": string,"admin_user_id": string,"currency": string,"locale": string,"name": string,"slug": string,"timezone": string }; Returns: string
                            },
+"admin_reconcile_seats":
+{ Args: { "actor_id": string }; Returns: number
+                           },
+"admin_seat_drift":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "departure_id": string,"held": number,"operator_id": string,"seats_booked": number
+            }[]
+                           },
 "admin_seed_guide_user":
 { Args: { "actor_id": string,"guide_id": string,"user_id": string }; Returns: undefined
                            },
@@ -266,10 +352,18 @@ isOneToOne: false
                            },
 "cancel_departure":
 { Args: { "departure_id": string }; Returns: undefined
+                           },
+"create_reservation":
+{ Args: { "customer_email"?: string,"customer_id"?: string,"customer_name"?: string,"customer_phone"?: string,"date"?: string,"departure_id"?: string,"notes"?: string,"operator_id": string,"people": number,"start_time"?: string,"status"?: Database["public"]['Enums']["reservation_status"],"tour_id"?: string }; Returns: {
+              "code": string,"id": string
+            }[]
+                           },
+"update_reservation":
+{ Args: { "date"?: string,"departure_id"?: string,"notes"?: string,"people"?: number,"reservation_id": string,"start_time"?: string }; Returns: undefined
                            }
           }
           Enums: {
-            "channel": "direct"|"getyourguide"|"viator"|"whatsapp","departure_origin": "schedule"|"ad_hoc","departure_status": "scheduled"|"closed"|"cancelled","membership_role": "administrador"|"reservas"|"contabilidad"|"guia"
+            "channel": "direct"|"getyourguide"|"viator"|"whatsapp","departure_origin": "schedule"|"ad_hoc","departure_status": "scheduled"|"closed"|"cancelled","membership_role": "administrador"|"reservas"|"contabilidad"|"guia","reservation_status": "pending_review"|"confirmed"|"cancelled"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -389,7 +483,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "channel": ["direct", "getyourguide", "viator", "whatsapp"],"departure_origin": ["schedule", "ad_hoc"],"departure_status": ["scheduled", "closed", "cancelled"],"membership_role": ["administrador", "reservas", "contabilidad", "guia"]
+            "channel": ["direct", "getyourguide", "viator", "whatsapp"],"departure_origin": ["schedule", "ad_hoc"],"departure_status": ["scheduled", "closed", "cancelled"],"membership_role": ["administrador", "reservas", "contabilidad", "guia"],"reservation_status": ["pending_review", "confirmed", "cancelled"]
           }
         }
 } as const

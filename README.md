@@ -65,6 +65,7 @@ and `.next/types`. Both are git-ignored.
 | `npm run db:types` | Regenerates `packages/shared/src/database.types.ts` from the local stack (schemas `public` and `audit`) |
 | `npm run db:types -- --check` | Fails when the committed types differ from the running database (CI) |
 | `npm run db:seed-users` | Creates the local seed users through the auth admin API and writes `tests/db/.seed-users.json` |
+| `npm run db:seat-drift` | Read-only seat counter check (`admin_seat_drift()` with the secret key); exits 1 on drift (runbook below) |
 | `npx supabase db reset` | Rebuilds the local database from `supabase/migrations` and `supabase/seed.sql` |
 | `npx supabase test db` | Runs the pgTAP files in `supabase/tests` |
 | `node scripts/bootstrap-operator.ts ...` | Creates an operator plus its first administrador (runbook below) |
@@ -270,9 +271,11 @@ rows carry `actor_source = 'system'`. The script refuses any non-local URL.
   offers `clientFor(user)` (signed-in client, publishable key),
   `adminClient()` (secret key), `anonClient()`, `expectZeroRows`,
   `expectSqlState`, `expectTypedError`, `asRole()` (raw SQL as a role with JWT
-  claims, for `private` helpers and catalogs) and a `reconcileSeats()` stub that
-  becomes real in U6. Tests that mutate create throwaway users and operators and
-  remove them, so the suite runs repeatedly against one reset.
+  claims, for `private` helpers and catalogs) and `reconcileSeats()` (the
+  `admin_seat_drift()` rows through the admin client; clean is `[]`).
+  `tests/db/booking.ts` holds the U6 booking fixtures. Tests that mutate create
+  throwaway users and operators and remove them, so the suite runs repeatedly
+  against one reset.
 - Both suites need the stack running and the seed users created:
 
 ```bash
@@ -297,8 +300,9 @@ prints a notice and succeeds without starting the stack. Otherwise it installs
 the pinned CLI with `supabase/setup-cli@v3`, starts the stack excluding
 `studio,storage-api,realtime,edge-runtime,logflare,vector,imgproxy` (one retry
 after `supabase stop --no-backup`), then runs `supabase db reset`,
-`npm run db:seed-users`, `supabase test db`, `npm run test:db` and
-`npm run db:types -- --check`. On pull requests it also runs the migration
+`npm run db:seed-users`, `supabase test db`, `npm run test:db`, the seat
+counter gate `npm run db:seat-drift` (zero drifting departures after the whole
+suite) and `npm run db:types -- --check`. On pull requests it also runs the migration
 preflight against `cupo-dev` (`supabase migration list --remote` and
 `supabase db push --dry-run --remote --output-format json`; its `migrations`
 array must equal exactly the migration files the PR adds, compared with
@@ -311,13 +315,16 @@ when `SUPABASE_ACCESS_TOKEN_DEV`, `SUPABASE_DB_PASSWORD_DEV` and
 - `deploy-dev`: on every push to `main`, under a concurrency group that never
   cancels a push in progress. Links `cupo-dev`, dumps schema and data to a
   workflow artifact (7-day retention), runs `supabase db push --remote`, then
-  `supabase config push --remote`, and verifies with `migration list` and
-  `config push --dry-run`.
+  `supabase config push --remote`, verifies with `migration list`, and runs the
+  read-only seat drift check (`npm run db:seat-drift` with
+  `SUPABASE_SECRET_KEY_DEV`; any drifting departure fails the job; skipped with
+  a notice while the secret is missing).
 - `deploy-prod`: `workflow_dispatch` with `action = deploy-prod`, on the
   protected `production` environment (required reviewer). Same steps against
   `cupo-prod`, with the dump encrypted with `age` to `AGE_PUBLIC_KEY_PROD` (the
   private key stays with the plan owner outside GitHub), followed by
-  `vercel deploy --prod` so the app never runs against an old schema.
+  `vercel deploy --prod` so the app never runs against an old schema, and then
+  the seat drift check with `SUPABASE_SECRET_KEY_PROD` (fails the job on drift).
 - `bootstrap-operator`: `workflow_dispatch` with `action = bootstrap-operator`
   and `target = dev | prod`; runs `scripts/bootstrap-operator.ts` with the
   secret key of that environment.
@@ -332,12 +339,12 @@ when `SUPABASE_ACCESS_TOKEN_DEV`, `SUPABASE_DB_PASSWORD_DEV` and
 | `SUPABASE_ACCESS_TOKEN_DEV` | secret | repository | PR preflight, `deploy-dev` (CI account in the dev organization) | present |
 | `SUPABASE_DB_PASSWORD_DEV` | secret | repository | preflight, `deploy-dev` (link, dump, push) | present |
 | `SUPABASE_PROJECT_REF_DEV` | variable | repository | preflight, `deploy-dev`, `bootstrap-operator` (dev) | present (`lnyjvnqhpwktxptxopvy`) |
-| `SUPABASE_SECRET_KEY_DEV` | secret | repository (or `development` environment) | `bootstrap-operator` with `target = dev`, `seed-dev-accounts` | missing |
+| `SUPABASE_SECRET_KEY_DEV` | secret | repository | `bootstrap-operator` with `target = dev`, `seed-dev-accounts`, the `deploy-dev` seat drift check | missing |
 | `SUPABASE_DEV_SEED_PASSWORD` | secret | repository | `seed-dev-accounts` (shared password of the cupo-dev test accounts; at least 10 characters with letters and digits) | missing |
 | `SUPABASE_ACCESS_TOKEN_PROD` | secret | `production` environment | `deploy-prod` | Phase 2 |
 | `SUPABASE_DB_PASSWORD_PROD` | secret | `production` environment | `deploy-prod` | Phase 2 |
 | `SUPABASE_PROJECT_REF_PROD` | variable | `production` environment | `deploy-prod`, `bootstrap-operator` (prod) | Phase 2 |
-| `SUPABASE_SECRET_KEY_PROD` | secret | `production` environment | `bootstrap-operator` with `target = prod` | Phase 2 |
+| `SUPABASE_SECRET_KEY_PROD` | secret | `production` environment | `bootstrap-operator` with `target = prod`, the `deploy-prod` seat drift check | Phase 2 |
 | `AGE_PUBLIC_KEY_PROD` | secret | `production` environment | encrypts the prod dump | Phase 2 |
 | `VERCEL_TOKEN` | secret | `production` environment | `vercel deploy --prod` | Phase 2 |
 | `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` | variables | `production` environment | `vercel deploy --prod` | Phase 2 |
@@ -345,6 +352,24 @@ when `SUPABASE_ACCESS_TOKEN_DEV`, `SUPABASE_DB_PASSWORD_DEV` and
 The `production` environment needs a required reviewer. Supabase access tokens
 are account-wide, so the dev token belongs to a CI account that is a member of
 the dev organization only (KTD1).
+
+### Seat counter drift runbook
+
+`tour_departures.seats_booked` must equal the people held by the departure's
+non-cancelled reservations (R24); the reservation triggers keep it so on every
+write path, and `admin_seat_drift()` lists any departure where it does not.
+
+1. Check: `npm run db:seat-drift` (local stack, or a hosted project with
+   `SUPABASE_URL` and `SUPABASE_SECRET_KEY` exported; prod runs only inside the
+   `deploy-prod` job). It prints departure and operator ids with both counts.
+2. If a held sum exceeds the departure's capacity, decide per departure with
+   the operator first (cancel or move reservations); the repair refuses to
+   write a counter above capacity.
+3. Repair with `admin_reconcile_seats(actor_id)` through the admin client (for
+   example `admin.rpc("admin_reconcile_seats", { actor_id })` from a one-off
+   script on the same targets); it locks the drifting departures, rewrites each
+   counter and audits every rewrite in `audit.events` with source `app`.
+4. Run the check again and expect zero rows.
 
 ### Bootstrap-operator runbook
 

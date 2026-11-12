@@ -9,6 +9,7 @@ import { pageLocale } from "@/i18n/params";
 import { getDeparture } from "@/lib/dal/departures";
 import { listGuides } from "@/lib/dal/guides";
 import { requirePageContext } from "@/lib/dal/page";
+import { getDepartureBookings } from "@/lib/dal/reservations";
 import { formatInstant, formatLocalDate } from "@/lib/format";
 import { cancelDepartureAction, closeDepartureAction } from "../actions";
 
@@ -28,7 +29,12 @@ export default async function DeparturePage({ params }: Props) {
   if (!departure) notFound();
 
   const canWrite = can(ctx.role, "departures.write");
-  const [t, guides] = await Promise.all([getTranslations("departures"), canWrite ? listGuides(ctx) : Promise.resolve([])]);
+  const [t, guides, bookings] = await Promise.all([
+    getTranslations("departures"),
+    canWrite ? listGuides(ctx) : Promise.resolve([]),
+    // F4: the cancel confirmation states what the cascade will cancel.
+    canWrite && departure.status !== "cancelled" ? getDepartureBookings(ctx, departure.id) : Promise.resolve(null),
+  ]);
   // Active guides, plus the assigned one even if inactive since, so saving keeps it.
   const guideChoices = guides
     .filter((guide) => guide.active || guide.id === departure.guideId)
@@ -110,6 +116,11 @@ export default async function DeparturePage({ params }: Props) {
           ) : null}
           <div className="flex flex-col gap-1">
             <p className="text-small text-muted">{t("lifecycle.cancelDescription")}</p>
+            {bookings ? (
+              <p className="text-small text-text" data-active-reservations={bookings.reservations}>
+                {t("lifecycle.activeReservations", { count: bookings.reservations, people: bookings.people })}
+              </p>
+            ) : null}
             <div>
               <ActionButton
                 action={cancelDepartureAction}

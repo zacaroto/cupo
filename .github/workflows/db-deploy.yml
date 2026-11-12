@@ -2,13 +2,15 @@ name: db-deploy
 
 # KTD10: migrations reach the hosted projects only through this workflow.
 # - dev: every push to main pushes pending migrations and the auth config to
-#   cupo-dev, after dumping the database to a 7-day artifact.
+#   cupo-dev, after dumping the database to a 7-day artifact, then runs the
+#   read-only seat drift check (admin_seat_drift through the admin client).
 # - prod: workflow_dispatch on the protected `production` environment (required
 #   reviewer). The dump is encrypted with age to the public key held in that
 #   environment; the private key stays with the plan owner outside GitHub. After
 #   a successful push the production app is deployed with `vercel deploy --prod`
 #   (automatic production deploys from main are disabled in apps/web/vercel.json),
-#   so a new app never runs against an old schema.
+#   so a new app never runs against an old schema; the seat drift check runs
+#   last and fails the job on any drifting departure.
 # - bootstrap-operator: runs scripts/bootstrap-operator.ts against dev or prod
 #   with the secret key that lives only in the matching environment.
 # - seed-dev-accounts: creates fixed password test accounts on cupo-dev only
@@ -177,6 +179,32 @@ jobs:
           # CLI 3.1.0 has no `config push --dry-run`; the push step above prints
           # the diff it applied (issue #18).
 
+      # Seat counter invariant (U6, KTD5; README runbook "Seat counter drift"):
+      # read-only admin_seat_drift() through the admin client; any row fails
+      # the job. Skips with a notice until SUPABASE_SECRET_KEY_DEV exists.
+      - uses: actions/setup-node@v4
+        if: steps.config.outputs.configured == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        if: steps.config.outputs.configured == 'true'
+        run: npm ci
+
+      - name: Seat drift check
+        if: steps.config.outputs.configured == 'true'
+        env:
+          SUPABASE_URL: https://${{ vars.SUPABASE_PROJECT_REF_DEV }}.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY_DEV }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_SECRET_KEY:-}" ]; then
+            echo "::notice title=Seat drift check skipped::SUPABASE_SECRET_KEY_DEV is not configured; admin_seat_drift() did not run on cupo-dev."
+            exit 0
+          fi
+          npm run db:seat-drift
+
   deploy-prod:
     name: deploy-prod
     if: github.event_name == 'workflow_dispatch' && inputs.action == 'deploy-prod'
@@ -270,6 +298,27 @@ jobs:
         # Only after the schema push succeeded. The Vercel project builds apps/web
         # (Root Directory) with its own Production environment variables.
         run: npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
+
+      # Seat counter invariant after every prod push (U6, KTD5; README runbook
+      # "Seat counter drift"): read-only, and any drifting departure fails the
+      # job (the failure notification is the alert). Runs after the app deploy
+      # so a data problem does not hold back a schema-compatible release.
+      - name: Install
+        if: steps.config.outputs.configured == 'true'
+        run: npm ci
+
+      - name: Seat drift check
+        if: steps.config.outputs.configured == 'true'
+        env:
+          SUPABASE_URL: https://${{ vars.SUPABASE_PROJECT_REF_PROD }}.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY_PROD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_SECRET_KEY:-}" ]; then
+            echo "::notice title=Seat drift check skipped::SUPABASE_SECRET_KEY_PROD is not configured in the production environment; admin_seat_drift() did not run."
+            exit 0
+          fi
+          npm run db:seat-drift
 
   bootstrap-operator:
     name: bootstrap-operator (${{ inputs.target }})

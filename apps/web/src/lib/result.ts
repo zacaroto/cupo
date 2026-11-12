@@ -39,6 +39,7 @@ const SQLSTATE_STATES: Readonly<Record<string, ActionErrorCode>> = {
   "23503": "invalid_reference", // foreign key violation (includes composite operator FKs)
   "23502": "invalid", // not null violation
   "22P02": "invalid", // invalid text representation (bad uuid, enum)
+  "22023": "invalid", // invalid parameter value (an rpc's input validation)
   "40P01": "retry", // deadlock detected
   "40001": "retry", // serialization failure
   PGRST116: "not_found", // .single() found no row

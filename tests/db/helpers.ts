@@ -96,12 +96,18 @@ export function expectTypedError<T>(result: ApiResult<T>, name: string): void {
   expect(error.message).toBe(name);
 }
 
+/** One departure whose counter differs from the people its non-cancelled reservations hold. */
+export type SeatDrift = { departure_id: string; operator_id: string; seats_booked: number; held: number };
+
 /**
- * Zero seat-drift rows over every departure (plan verification gate).
- * `admin_seat_drift()` ships with the departures and reservations units.
+ * The seat-drift rows over every departure (plan verification gate, KTD5),
+ * read through `admin_seat_drift()` with the secret key exactly as the
+ * db-deploy check does. Clean means `[]`.
  */
-export function reconcileSeats(): Promise<never> {
-  return Promise.reject(new Error("reconcileSeats() is available from U6 (admin_seat_drift)"));
+export async function reconcileSeats(): Promise<SeatDrift[]> {
+  const { data, error } = await adminClient().rpc("admin_seat_drift");
+  if (error) throw new Error(`admin_seat_drift failed: ${error.code} ${error.message}`);
+  return data ?? [];
 }
 
 /** A password that satisfies the policy in config.toml (10+ chars, letters and digits). */
