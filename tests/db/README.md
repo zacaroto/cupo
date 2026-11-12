@@ -42,7 +42,7 @@ local Supabase stack. Files run in series (`--no-file-parallelism`).
   lands on the agenda) and deactivate actions.
 - `tours.test.ts` covers U5 tours: the seeded catalog, AE2 for tours,
   prices, schedules and departures, AE4 for prices (reservas and guía get
-  zero rows), the tour, price and schedule grants and constraints, and the
+  zero rows; a guía reads only the tours of their future departures), the tour, price and schedule grants and constraints, and the
   create, edit, price, schedule and archive actions (found-checks, reservas
   and contabilidad forbidden).
 - `departures.test.ts` covers U5 departures: column grants on server-owned
@@ -75,6 +75,13 @@ local Supabase stack. Files run in series (`--no-file-parallelism`).
   by role, and the edit and cancel actions (people, notes, slot moves,
   unchanged edits that write nothing, capacity and validation states that keep
   the values, `forbidden_transition` on a cancelled reservation, found-checks).
+- `guide-visibility.test.ts` covers U7: the full AE10 Data API matrix of the
+  seeded guía (future assigned departures, active reservations on them, the
+  tours of those departures and the masked names of those customers; zero
+  notes, customers, amounts, prices, schedules and audit rows; only their own
+  membership and profile), unassigning a departure, the forbidden state of
+  every other section and action, and the agenda DAL (seeded guía, and a guía
+  with no departures gets an empty agenda).
 - `foundation.test.ts` covers the U2 scenarios: AE2 cross-operator reads and
   writes, operator column grants, admin rpc privileges, AE6 last administrador,
   inactive operators, timezone validation, profiles visibility, password sign-in

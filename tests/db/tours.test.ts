@@ -138,11 +138,17 @@ describe("AE2 for tours, prices, schedules and departures (R2, R30)", () => {
     expect(departures.data).toEqual([{ id: departureA }]);
   });
 
-  it("a guía reads no tours, prices or schedules", async () => {
+  // U7: a guía reads the tours of their future assigned departures only
+  // (tests/db/guide-visibility.test.ts); never prices or schedules.
+  it("a guía reads no prices or schedules, and no tour without a future departure of theirs", async () => {
     const guia = await clientFor("guiaA");
-    for (const table of ["tours", "tour_prices", "tour_schedules"] as const) {
+    for (const table of ["tour_prices", "tour_schedules"] as const) {
       expectZeroRows(await guia.from(table).select("id"));
     }
+    const departures = await guia.from("tour_departures").select("tour_id");
+    const tours = await guia.from("tours").select("id");
+    expect(tours.error).toBeNull();
+    expect(new Set(tours.data?.map((row) => row.id))).toEqual(new Set(departures.data?.map((row) => row.tour_id)));
   });
 });
 

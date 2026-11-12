@@ -91,9 +91,6 @@
       "title": "Home",
       "greeting": "You are working in {operator} as {role}.",
       "sections": "Sections available to your role"
-    },
-    "placeholder": {
-      "description": "This section arrives in a later stage."
     }
   },
   "members": {
@@ -647,5 +644,23 @@
       "unknownDeparture": "Departure no longer available",
       "unknownCustomer": "Customer no longer available"
     }
+  },
+  "agenda": {
+    "title": "Agenda",
+    "description": "Your upcoming assigned departures and their reservations. Local dates and times in {timezone}.",
+    "empty": "You have no upcoming assigned departures.",
+    "hasMore": "Showing the first {count} departures.",
+    "none": "—",
+    "meetingPoint": "Meeting point: {place}",
+    "occupancy": "{people} of {capacity} seats",
+    "partySize": "{count, plural, one {# person} other {# people}}",
+    "reservationsLabel": "Reservations for {tour} at {time}",
+    "noReservations": "No reservations yet.",
+    "departureStatus": {
+      "scheduled": "Scheduled",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "pendingReview": "To review"
   }
 }

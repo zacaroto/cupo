@@ -91,9 +91,6 @@
       "title": "Inicio",
       "greeting": "Estás trabajando en {operator} como {role}.",
       "sections": "Secciones disponibles para tu rol"
-    },
-    "placeholder": {
-      "description": "Esta sección llega en una próxima etapa."
     }
   },
   "members": {
@@ -647,5 +644,23 @@
       "unknownDeparture": "Salida no disponible",
       "unknownCustomer": "Cliente no disponible"
     }
+  },
+  "agenda": {
+    "title": "Agenda",
+    "description": "Tus próximas salidas asignadas, con sus reservas. Fechas y horas locales en {timezone}.",
+    "empty": "No tenés salidas asignadas próximamente.",
+    "hasMore": "Se muestran las primeras {count} salidas.",
+    "none": "—",
+    "meetingPoint": "Punto de encuentro: {place}",
+    "occupancy": "{people} de {capacity} lugares",
+    "partySize": "{count, plural, one {# persona} other {# personas}}",
+    "reservationsLabel": "Reservas de {tour} a las {time}",
+    "noReservations": "Sin reservas por ahora.",
+    "departureStatus": {
+      "scheduled": "Programada",
+      "closed": "Cerrada",
+      "cancelled": "Cancelada"
+    },
+    "pendingReview": "Por revisar"
   }
 }
