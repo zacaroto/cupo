@@ -5,13 +5,13 @@
 // found-check on every targeted write. Capacity, departure state, archived
 // tours, codes and amounts are database rules; their errors arrive here by
 // name and are mapped by result.ts. Customer data is never logged.
-import { reservationCancelSchema, reservationCreateSchema } from "@cupo/shared/schemas/reservations";
+import { reservationCancelSchema, reservationCreateSchema, reservationUpdateSchema } from "@cupo/shared/schemas/reservations";
 import { refresh } from "next/cache";
 import { redirect } from "@/i18n/navigation";
 import { field, localeFrom } from "@/lib/auth/request";
 import { requireOperatorContext } from "@/lib/dal/context";
 import { listCustomers } from "@/lib/dal/customers";
-import { cancelReservation, createReservation } from "@/lib/dal/reservations";
+import { cancelReservation, createReservation, getReservation, updateReservation, type ReservationUpdateInput } from "@/lib/dal/reservations";
 import { errorState, validationState, withValues, type ActionState, type ErrorState } from "@/lib/result";
 
 const OK = { status: "ok" } as const;
@@ -68,6 +68,53 @@ export async function cancelReservationAction(_previous: ActionState, formData: 
   }
   refresh();
   return OK;
+}
+
+const UPDATE_FIELDS = ["date", "slot", "people", "notes"] as const;
+
+/** The edit's outcome: whether anything was written. */
+export type ReservationUpdateState = ActionState<{ changed: boolean }>;
+
+/**
+ * Edits a reservation from the detail page (U10): people, a move to another
+ * departure or slot of the same tour, and the notes, through
+ * `update_reservation`. Only what differs from the current row is sent. A
+ * cancelled reservation is read-only: the database freezes its people and
+ * departure, and this action also refuses a notes-only edit with the same
+ * `forbidden_transition`. Every failure keeps what the user typed.
+ */
+export async function updateReservationAction(_previous: ReservationUpdateState, formData: FormData): Promise<ReservationUpdateState> {
+  const values = Object.fromEntries(UPDATE_FIELDS.map((name) => [name, field(formData, name)])) as Record<
+    (typeof UPDATE_FIELDS)[number],
+    string
+  >;
+  let changed: boolean;
+  try {
+    const ctx = await requireOperatorContext("reservations.write");
+    const parsed = reservationUpdateSchema.safeParse({ reservationId: field(formData, "reservationId"), ...values });
+    if (!parsed.success) return withValues(validationState(parsed.error), values);
+    const input = parsed.data;
+    const current = await getReservation(ctx, input.reservationId);
+    if (!current) return withValues({ status: "error", error: "not_found" }, values);
+    if (current.status === "cancelled") return withValues({ status: "error", error: "forbidden_transition" }, values);
+
+    const moved = input.slot.departureId === null || input.slot.departureId !== current.departureId;
+    const currentNotes = current.notes ?? null;
+    const update: ReservationUpdateInput = {
+      reservationId: current.id,
+      people: input.people !== current.people ? input.people : null,
+      departureId: moved ? input.slot.departureId : null,
+      slot: moved && input.slot.startTime !== null ? { date: input.date, startTime: input.slot.startTime } : null,
+      // "" clears the notes (update_reservation); null leaves them alone.
+      notes: input.notes !== currentNotes ? (input.notes ?? "") : null,
+    };
+    changed = update.people !== null || update.departureId !== null || update.slot !== null || update.notes !== null;
+    if (changed) await updateReservation(ctx, update);
+  } catch (error) {
+    return withValues(errorState(error), values);
+  }
+  if (changed) refresh();
+  return { status: "ok", data: { changed } };
 }
 
 /** One match of the reservation form's customer search. */

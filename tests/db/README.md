@@ -67,6 +67,14 @@ local Supabase stack. Files run in series (`--no-file-parallelism`).
   `has_incomplete_data` and its audit rows, amounts (AE4, recompute,
   override), notes, AE3 and AE11, reads by role (AE5, the guía policy), and
   the reservation actions and list DAL through the real server code.
+- `history.test.ts` covers U10: the reservation history through the audit
+  DAL (create, edit and cancel as grouped entries with the actor, departure
+  and customer labels and only changed keys; "Sistema" for secret-key writes;
+  "Usuario eliminado" after the actor's user is deleted), zero `audit.events`
+  rows for reservas, contabilidad and an administrador of B, the detail read
+  by role, and the edit and cancel actions (people, notes, slot moves,
+  unchanged edits that write nothing, capacity and validation states that keep
+  the values, `forbidden_transition` on a cancelled reservation, found-checks).
 - `guide-visibility.test.ts` covers U7: the full AE10 Data API matrix of the
   seeded guía (future assigned departures, active reservations on them, the
   tours of those departures and the masked names of those customers; zero

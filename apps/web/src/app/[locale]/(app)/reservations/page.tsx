@@ -33,7 +33,7 @@ function single(value: string | string[] | undefined): string | undefined {
 // a status filter. Customer names are full for administrador and reservas and
 // masked for contabilidad (the DAL reads customer_display for them); amounts
 // show for administrador and contabilidad only. Writers cancel with a reason
-// from the row; the detail page and edits arrive with U10.
+// from the row; each code opens the detail page (U10).
 export default async function ReservationsPage({ params, searchParams }: Props) {
   const locale = await pageLocale(params);
   const ctx = await requirePageContext(locale, "reservations.read");
@@ -118,7 +118,11 @@ export default async function ReservationsPage({ params, searchParams }: Props) 
             <tbody>
               {list.reservations.map((reservation) => (
                 <tr key={reservation.id} className="border-b border-rule align-top last:border-b-0" data-reservation-code={reservation.code}>
-                  <td className="whitespace-nowrap px-3 py-2 font-mono text-text">{reservation.code}</td>
+                  <td className="whitespace-nowrap px-3 py-2 font-mono">
+                    <Link href={`/reservations/${reservation.id}`} className="text-accent hover:underline">
+                      {reservation.code}
+                    </Link>
+                  </td>
                   <td className="whitespace-nowrap px-3 py-2">
                     <Link href={`/departures/${reservation.departureId}`} className="capitalize text-accent hover:underline">
                       {formatLocalDate(reservation.date, locale)}
