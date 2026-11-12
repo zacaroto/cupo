@@ -48,6 +48,21 @@ describe("result mapper (KTD5)", () => {
     ).toEqual({ status: "error", error: "invalid" });
   });
 
+  it("maps a reservation check and an rpc's invalid parameter to invalid (U6)", () => {
+    expect(
+      errorState(
+        pgError("23514", 'new row for relation "reservations" violates check constraint "reservations_cancel_reason_required"'),
+      ),
+    ).toEqual({ status: "error", error: "invalid" });
+    expect(errorState(pgError("22023", "a customer id or a customer name is required"))).toEqual({ status: "error", error: "invalid" });
+  });
+
+  it("maps the reservation typed errors by name (U6)", () => {
+    for (const name of ["capacity_exceeded", "departure_not_open", "tour_archived", "forbidden_transition", "price_missing"]) {
+      expect(errorState(pgError("P0001", name))).toEqual({ status: "error", error: name });
+    }
+  });
+
   it("maps 40P01 (deadlock) to a retry state", () => {
     expect(errorState(pgError("40P01", "deadlock detected"))).toEqual({ status: "error", error: "retry" });
   });

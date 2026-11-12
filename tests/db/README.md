@@ -13,8 +13,12 @@ local Supabase stack. Files run in series (`--no-file-parallelism`).
   them too.
 - `helpers.ts`: `clientFor(user)`, `adminClient()`, `anonClient()`,
   `expectZeroRows`, `expectSqlState`, `expectTypedError`, `asRole()`,
-  `createTestUser` / `deleteTestUser`, `sql()` and the `reconcileSeats()` stub
-  (real from U6).
+  `createTestUser` / `deleteTestUser`, `sql()` and `reconcileSeats()` (the
+  `admin_seat_drift()` rows through the admin client; clean is `[]`).
+- `booking.ts` holds the U6 booking fixtures: throwaway tours with a direct
+  price, departures, customers and operators, the `create_reservation` call
+  (`book`), counter readers and an audit id watermark (`auditMark`, so tests
+  never compare the host clock with the database's).
 - `mailpit.ts` reads auth emails from the local mail UI (port 54324) so a test
   can follow an invite, magic-link or recovery link like a user.
 - `auth.test.ts` covers the U3 scenarios by running the real server actions,
@@ -49,6 +53,20 @@ local Supabase stack. Files run in series (`--no-file-parallelism`).
   slot reuse after a cancel, callers without a booking role), the state
   machine and `cancel_departure`, AE10 for the guía, the guide-deactivation
   clear (`guide_inactive`), and the departure actions and slot DAL.
+- `capacity.test.ts` covers the U6 seat rule: AE1 (three runs of ten
+  concurrent creates on the last seat), the departure cancel under load (three
+  runs), AE8 (cascade with one jwt audit row per reservation), moves between
+  departures (capacity, other tour, closed or cancelled target, cancel and move
+  in one update, two opposite moves at once), people changes, closed,
+  cancelled and archived departures on create, deletes with the secret key,
+  per-operator consecutive codes, and `admin_seat_drift` /
+  `admin_reconcile_seats`.
+- `reservations.test.ts` covers the rest of U6: `create_reservation`
+  (materialization, new or existing customer, notes, found-checks, roles),
+  the state machine through every write path (AE12), `update_reservation`,
+  `has_incomplete_data` and its audit rows, amounts (AE4, recompute,
+  override), notes, AE3 and AE11, reads by role (AE5, the guía policy), and
+  the reservation actions and list DAL through the real server code.
 - `foundation.test.ts` covers the U2 scenarios: AE2 cross-operator reads and
   writes, operator column grants, admin rpc privileges, AE6 last administrador,
   inactive operators, timezone validation, profiles visibility, password sign-in

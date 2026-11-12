@@ -454,7 +454,8 @@
       "cancel": "Cancel departure",
       "cancelDescription": "Cancelling the departure also cancels its active reservations. It cannot be undone.",
       "cancelConfirm": "Cancel the departure and its active reservations? It cannot be undone.",
-      "cancelledNotice": "The departure is cancelled. Its slot is free for a new departure."
+      "cancelledNotice": "The departure is cancelled. Its slot is free for a new departure.",
+      "activeReservations": "{count, plural, =0 {No active reservations.} one {# active reservation with {people, plural, one {# person} other {# people}}.} other {# active reservations with {people, plural, one {# person} other {# people}}.}}"
     },
     "validation": {
       "tourRequired": "Choose a tour.",
@@ -464,6 +465,104 @@
       "guideInvalid": "Choose a guide from the list.",
       "idInvalid": "The record is not valid.",
       "slotTaken": "This tour already has a departure on that date and time."
+    }
+  },
+  "reservations": {
+    "title": "Reservations",
+    "description": "Reservations by departure date. Local dates and times in {timezone}.",
+    "new": "New reservation",
+    "created": "Reservation {code} created.",
+    "empty": "No reservations match these filters.",
+    "hasMore": "Showing the first {count}. Narrow the dates to see others.",
+    "none": "—",
+    "incomplete": "Incomplete data",
+    "incompleteHint": "The customer has no email or phone.",
+    "overridden": "adjusted",
+    "filters": {
+      "label": "Filter reservations",
+      "from": "From",
+      "to": "To",
+      "status": "Status",
+      "allStatuses": "All statuses",
+      "submit": "Filter"
+    },
+    "fields": {
+      "code": "Code",
+      "date": "Date",
+      "startTime": "Time",
+      "tour": "Tour",
+      "customer": "Customer",
+      "people": "People",
+      "status": "Status",
+      "amount": "Amount",
+      "actions": "Actions"
+    },
+    "status": {
+      "pending_review": "To review",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled"
+    },
+    "cancelReason": {
+      "departure_cancelled": "Departure cancelled"
+    },
+    "cancel": {
+      "open": "Cancel",
+      "label": "Cancel reservation {code}",
+      "reason": "Reason",
+      "reasonPlaceholder": "E.g. the customer cannot attend",
+      "submit": "Cancel reservation",
+      "confirm": "Cancel the reservation? The seats go back to the departure. This cannot be undone."
+    },
+    "newPage": {
+      "title": "New reservation",
+      "description": "Pick the tour and the date, then the time, the people and the customer.",
+      "back": "Back to reservations",
+      "tour": "Tour",
+      "chooseTour": "Choose a tour",
+      "date": "Date",
+      "showSlots": "Show times",
+      "noTours": "There are no active tours. Create one in Tours first.",
+      "noSlots": "This tour has no schedules or departures that day. You can create a departure in Departures.",
+      "unknownTour": "That tour is not available."
+    },
+    "form": {
+      "slot": "Time",
+      "slotOpen": "{time} · {available, plural, one {# seat left} other {# seats left}}",
+      "slotClosed": "{time} · Closed",
+      "slotFull": "{time} · Full",
+      "people": "People",
+      "status": "Status",
+      "notes": "Internal notes (optional)",
+      "notesHint": "Visible to administration, bookings and accounting; never to the guide.",
+      "submit": "Create reservation"
+    },
+    "picker": {
+      "legend": "Customer",
+      "existing": "Existing customer",
+      "new": "New customer",
+      "search": "Search customers",
+      "searchPlaceholder": "Name, email or phone",
+      "searchSubmit": "Search",
+      "searching": "Searching…",
+      "results": "Pick a customer",
+      "noResults": "No customer matches. Try another search or create a new customer.",
+      "noContact": "no contact",
+      "name": "Full name",
+      "email": "Email (optional)",
+      "phone": "Phone (optional)",
+      "newHint": "If the email already belongs to a customer, the reservation is booked for them. Without email or phone, the reservation is marked incomplete."
+    },
+    "validation": {
+      "tourRequired": "Choose a tour.",
+      "dateInvalid": "Enter a valid date.",
+      "slotRequired": "Choose a time.",
+      "peopleInvalid": "Enter a whole number between 1 and 10000.",
+      "statusInvalid": "Choose a status.",
+      "customerRequired": "Pick a customer or create a new one.",
+      "notesTooLong": "Notes can have up to 2000 characters.",
+      "idInvalid": "The record is not valid.",
+      "reasonRequired": "Give a reason.",
+      "reasonTooLong": "The reason can have up to 500 characters."
     }
   }
 }

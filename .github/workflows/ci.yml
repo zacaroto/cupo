@@ -170,6 +170,13 @@ jobs:
         if: steps.changes.outputs.run == 'true'
         run: npm run test:db
 
+      # U6 (KTD5): after the whole suite every departure's seats_booked equals
+      # the people held by its non-cancelled reservations (admin_seat_drift
+      # through the admin client returns zero rows).
+      - name: Seat counters reconcile
+        if: steps.changes.outputs.run == 'true'
+        run: npm run db:seat-drift
+
       - name: Generated types are current
         if: steps.changes.outputs.run == 'true'
         run: npm run db:types -- --check

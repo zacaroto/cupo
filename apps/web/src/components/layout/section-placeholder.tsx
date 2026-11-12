@@ -1,9 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import type { NavSectionKey } from "./nav-sections";
 
-// Placeholder body for shell sections whose unit has not landed yet
-// (U5 tours and departures, U6 reservations,
-// U7 agenda, U9 customers). Each page already enforces its read action.
+// Placeholder body for shell sections whose unit has not landed yet (U7
+// agenda). Each page already enforces its read action.
 export async function SectionPlaceholder({ section }: { section: NavSectionKey }) {
   const t = await getTranslations("shell");
   return (

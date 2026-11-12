@@ -454,7 +454,8 @@
       "cancel": "Cancelar salida",
       "cancelDescription": "Cancelar la salida cancela también sus reservas activas. No se puede deshacer.",
       "cancelConfirm": "¿Cancelar la salida y sus reservas activas? No se puede deshacer.",
-      "cancelledNotice": "La salida está cancelada. Ese horario quedó libre para una salida nueva."
+      "cancelledNotice": "La salida está cancelada. Ese horario quedó libre para una salida nueva.",
+      "activeReservations": "{count, plural, =0 {Sin reservas activas.} one {# reserva activa con {people, plural, one {# persona} other {# personas}}.} other {# reservas activas con {people, plural, one {# persona} other {# personas}}.}}"
     },
     "validation": {
       "tourRequired": "Elegí un tour.",
@@ -464,6 +465,104 @@
       "guideInvalid": "Elegí un guía de la lista.",
       "idInvalid": "El registro no es válido.",
       "slotTaken": "Ya hay una salida de este tour en esa fecha y hora."
+    }
+  },
+  "reservations": {
+    "title": "Reservas",
+    "description": "Reservas por fecha de salida. Fechas y horas locales en {timezone}.",
+    "new": "Nueva reserva",
+    "created": "Reserva {code} creada.",
+    "empty": "No hay reservas con estos filtros.",
+    "hasMore": "Se muestran las primeras {count}. Acotá las fechas para ver otras.",
+    "none": "—",
+    "incomplete": "Datos incompletos",
+    "incompleteHint": "El cliente no tiene correo ni teléfono.",
+    "overridden": "ajustado",
+    "filters": {
+      "label": "Filtrar reservas",
+      "from": "Desde",
+      "to": "Hasta",
+      "status": "Estado",
+      "allStatuses": "Todos los estados",
+      "submit": "Filtrar"
+    },
+    "fields": {
+      "code": "Código",
+      "date": "Fecha",
+      "startTime": "Hora",
+      "tour": "Tour",
+      "customer": "Cliente",
+      "people": "Personas",
+      "status": "Estado",
+      "amount": "Monto",
+      "actions": "Acciones"
+    },
+    "status": {
+      "pending_review": "Por revisar",
+      "confirmed": "Confirmada",
+      "cancelled": "Cancelada"
+    },
+    "cancelReason": {
+      "departure_cancelled": "Salida cancelada"
+    },
+    "cancel": {
+      "open": "Cancelar",
+      "label": "Cancelar la reserva {code}",
+      "reason": "Motivo",
+      "reasonPlaceholder": "Ej.: el cliente no puede asistir",
+      "submit": "Cancelar reserva",
+      "confirm": "¿Cancelar la reserva? Los lugares vuelven a la salida. No se puede deshacer."
+    },
+    "newPage": {
+      "title": "Nueva reserva",
+      "description": "Elegí el tour y la fecha; después el horario, las personas y el cliente.",
+      "back": "Volver a reservas",
+      "tour": "Tour",
+      "chooseTour": "Elegí un tour",
+      "date": "Fecha",
+      "showSlots": "Ver horarios",
+      "noTours": "No hay tours activos. Creá uno en Tours primero.",
+      "noSlots": "No hay horarios ni salidas de este tour ese día. Podés crear una salida en Salidas.",
+      "unknownTour": "Ese tour no está disponible."
+    },
+    "form": {
+      "slot": "Horario",
+      "slotOpen": "{time} · {available, plural, one {# lugar libre} other {# lugares libres}}",
+      "slotClosed": "{time} · Cerrada",
+      "slotFull": "{time} · Completa",
+      "people": "Personas",
+      "status": "Estado",
+      "notes": "Notas internas (opcional)",
+      "notesHint": "Las ven administración, reservas y contabilidad; nunca el guía.",
+      "submit": "Crear reserva"
+    },
+    "picker": {
+      "legend": "Cliente",
+      "existing": "Cliente existente",
+      "new": "Cliente nuevo",
+      "search": "Buscar cliente",
+      "searchPlaceholder": "Nombre, correo o teléfono",
+      "searchSubmit": "Buscar",
+      "searching": "Buscando…",
+      "results": "Elegí un cliente",
+      "noResults": "Ningún cliente coincide. Probá otra búsqueda o creá un cliente nuevo.",
+      "noContact": "sin contacto",
+      "name": "Nombre completo",
+      "email": "Correo (opcional)",
+      "phone": "Teléfono (opcional)",
+      "newHint": "Si el correo ya es de un cliente, la reserva queda a su nombre. Sin correo ni teléfono, la reserva queda con datos incompletos."
+    },
+    "validation": {
+      "tourRequired": "Elegí un tour.",
+      "dateInvalid": "Ingresá una fecha válida.",
+      "slotRequired": "Elegí un horario.",
+      "peopleInvalid": "Ingresá un número entero entre 1 y 10000.",
+      "statusInvalid": "Elegí un estado.",
+      "customerRequired": "Elegí un cliente o creá uno nuevo.",
+      "notesTooLong": "Las notas pueden tener hasta 2000 caracteres.",
+      "idInvalid": "El registro no es válido.",
+      "reasonRequired": "Indicá el motivo.",
+      "reasonTooLong": "El motivo puede tener hasta 500 caracteres."
     }
   }
 }
