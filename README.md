@@ -65,6 +65,7 @@ and `.next/types`. Both are git-ignored.
 | `npm run db:types` | Regenerates `packages/shared/src/database.types.ts` from the local stack (schemas `public` and `audit`) |
 | `npm run db:types -- --check` | Fails when the committed types differ from the running database (CI) |
 | `npm run db:seed-users` | Creates the local seed users through the auth admin API and writes `tests/db/.seed-users.json` |
+| `npm run db:seed-demo` | Loads demo tours (Reserva Monteverde, Curicancha, Lantana) with daily schedules and direct prices into Operator A of the local stack; idempotent, local only |
 | `npm run db:seat-drift` | Read-only seat counter check (`admin_seat_drift()` with the secret key); exits 1 on drift (runbook below) |
 | `npx supabase db reset` | Rebuilds the local database from `supabase/migrations` and `supabase/seed.sql` |
 | `npx supabase test db` | Runs the pgTAP files in `supabase/tests` |
