@@ -157,7 +157,7 @@ describe("AE5 masked customers (R11)", () => {
     expectZeroRows(await client.from("customers").select("id, name, email, phone"));
   });
 
-  it.each<SeedUserKey>(["contabilidadA", "guiaA"])(
+  it.each<SeedUserKey>(["contabilidadA"])(
     "%s reads first name plus last initial from customer_display",
     async (user) => {
       const client = await clientFor(user);
@@ -174,6 +174,15 @@ describe("AE5 masked customers (R11)", () => {
       ]);
     },
   );
+
+  // U7 narrowed the guía's view: only customers on reservations they can see
+  // (tests/db/guide-visibility.test.ts covers the positive case).
+  it("guiaA reads no masked name of a customer without a reservation on their departures", async () => {
+    const client = await clientFor("guiaA");
+    expectZeroRows(
+      await client.from("customer_display").select("customer_id").in("customer_id", [anaA.id, pedroA.id, onlyNameA.id, customerB.id]),
+    );
+  });
 
   it("administrador and reservas read full customer data", async () => {
     for (const user of ["adminA", "reservasA"] as const) {

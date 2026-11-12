@@ -12,3 +12,13 @@ export const NAV_SECTIONS = [
 ] as const satisfies ReadonlyArray<{ key: string; href: `/${string}`; action: Action }>;
 
 export type NavSectionKey = (typeof NAV_SECTIONS)[number]["key"];
+
+/**
+ * The first section segment of an app path (`/es/reservations/new` ->
+ * `reservations`), skipping the locale prefix; null for the home page.
+ */
+export function sectionOf(pathname: string, locales: readonly string[]): string | null {
+  const segments = pathname.split("/").filter(Boolean);
+  if (segments.length > 0 && locales.includes(segments[0])) segments.shift();
+  return segments[0] ?? null;
+}
