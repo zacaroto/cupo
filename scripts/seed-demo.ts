@@ -53,7 +53,7 @@ const TOURS: DemoTour[] = [
     capacity: 10,
     meetingPoint: "Entrada de la Reserva Curicancha",
     priceMinor: 5000,
-    times: ["07:00"],
+    times: ["07:30"],
   },
   {
     id: "de000000-0000-4000-8000-000000000003",
