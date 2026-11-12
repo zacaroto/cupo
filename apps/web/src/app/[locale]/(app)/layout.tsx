@@ -1,8 +1,11 @@
 import { getTranslations } from "next-intl/server";
+import { headers } from "next/headers";
 import { Header } from "@/components/layout/header";
 import { Nav } from "@/components/layout/nav";
+import { sectionOf } from "@/components/layout/nav-sections";
 import { redirect } from "@/i18n/navigation";
 import { pageLocale } from "@/i18n/params";
+import { routing } from "@/i18n/routing";
 import { getOperatorContext, getSessionUser, shellGate } from "@/lib/dal/context";
 
 type Props = { children: React.ReactNode; params: Promise<{ locale: string }> };
@@ -11,6 +14,9 @@ type Props = { children: React.ReactNode; params: Promise<{ locale: string }> };
 // every navigation, so every page and server action calls
 // requireOperatorContext itself. No context goes to no-access (R5); a staff
 // context without a password goes to set-password (R13); a guía never does.
+// A guía has only the agenda (U7): any other section, read from the
+// `x-pathname` header the proxy forwards (KTD9), goes there. Without the
+// header the page's own check answers.
 export default async function AppLayout({ children, params }: Props) {
   const locale = await pageLocale(params);
   const user = await getSessionUser();
@@ -19,6 +25,10 @@ export default async function AppLayout({ children, params }: Props) {
   const ctx = await getOperatorContext();
   const gate = shellGate(ctx);
   if (gate || !ctx) return redirect({ href: `/${gate ?? "no-access"}`, locale });
+  if (ctx.role === "guia") {
+    const pathname = (await headers()).get("x-pathname");
+    if (pathname !== null && sectionOf(pathname, routing.locales) !== "agenda") return redirect({ href: "/agenda", locale });
+  }
 
   const t = await getTranslations("shell");
   return (
