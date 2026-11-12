@@ -91,7 +91,9 @@ local Supabase stack. Files run in series (`--no-file-parallelism`).
   operator the actor does not belong to. Cells: select returns only own
   operators' rows, insert with a foreign `operator_id` is 42501, insert with
   the own `operator_id` and a foreign parent is 23503, update and delete of a
-  foreign row affect zero rows (42501 where ungranted), and every foreign row
+  foreign row affect zero rows (42501 where ungranted), an update of the
+  actor's own row to a foreign parent (reservation departure or customer,
+  departure guide) is 23503, and every foreign row
   and count is unchanged afterwards. The foreign chains carry an archived
   tour, an inactive guide and a reservation with notes, so a trigger that
   answers before RLS shows up. `operators` and `profiles` have their own

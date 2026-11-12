@@ -73,8 +73,31 @@ The pattern every definer `before insert` trigger follows:
    `reservation_id` alone, so an insert with A's operator and B's reservation
    id answered 23505 whenever that reservation had notes.
 
-`update` and `delete` do not have this problem. RLS filters them with `using`
-before any row trigger fires, and `operator_id` is not updatable.
+`update` and `delete` mostly avoid this problem. RLS filters them with
+`using` before any row trigger fires, and `operator_id` is not updatable, so a
+trigger only ever sees the caller's own rows. The gap left is an update that
+points an updatable parent column at another operator's row:
+
+- a reservation's `departure_id` or `customer_id`;
+- a departure's `guide_id`.
+
+The triggers that read those parents look them up by
+`(new.operator_id, <parent id>)` and answer 23503 when nothing is found, so a
+foreign parent and a missing one look the same. The U8 matrix has a cell for
+each case.
+
+U8 swept every `before` trigger, and the list is in the U8 report. Only the
+three inserts above needed a change:
+
+- `set_updated_at`, `operator_timezone_rules` and `amount_override` read no
+  other operator's rows.
+- `membership_last_administrador` and `guide_link_rules` run on update and
+  delete only, behind `using`, on the caller's own operator.
+- The seat, flag and code triggers on reservations and `set_departure_starts_at`
+  run after the guarded `t20` trigger of their table.
+- Tours, prices and schedules have no business `before` trigger. Their unique
+  keys all include `operator_id`. The departure slot key does not, but it is
+  only reachable after `departure_rules` has refused a foreign tour.
 
 Tests that set JWT claims and then `reset role` keep the claims for the rest of
 the transaction. Clear them (`set_config('request.jwt.claims', '{}', true)`)

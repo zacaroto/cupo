@@ -314,7 +314,9 @@ rows carry `actor_source = 'system'`. The script refuses any non-local URL.
   actor's own `operator_id` and a foreign parent fails with 23503, and update
   and delete of a foreign row affect zero rows (or fail with 42501 where the
   table grants neither), with every foreign row and row count re-read with
-  the secret key afterwards. `operators` and `profiles` have their own cells,
+  the secret key afterwards. An update of the actor's own row that points a
+  parent column (a reservation's departure or customer, a departure's guide)
+  at a foreign parent fails with 23503. `operators` and `profiles` have their own cells,
   `anon` reads and writes nothing, and a guard fails when a table is missing
   from the matrix. `tests/db/role-matrix.test.ts` covers R11 per role of A
   and every RPC × caller cell (the four roles, `anon` and the secret key):

@@ -8,7 +8,10 @@
 // - insert with the actor's own `operator_id` and a foreign parent id fails
 //   with a foreign-key violation (23503);
 // - update and delete of a foreign row affect zero rows (or 42501 where the
-//   table grants no update or delete), re-read with the secret key.
+//   table grants no update or delete), re-read with the secret key;
+// - an update of the actor's own row that points an updatable parent column
+//   (a reservation's departure or customer, a departure's guide) at a foreign
+//   parent fails with 23503.
 // `operators` and `profiles` carry no operator_id and get their own cells. A
 // guard compares the matrix list with `information_schema.tables`, so a new
 // table fails here until it is added. README, "Fail-ability check", shows how
@@ -67,6 +70,13 @@ type ParentCase = {
   roles: MembershipRole[];
 };
 
+type ParentUpdateCase = {
+  label: string;
+  values: (foreign: Chain) => Row;
+  /** Roles whose update policy lets them reach their own row; others update zero rows. */
+  roles: MembershipRole[];
+};
+
 type TableSpec = {
   schema: "public" | "audit";
   table: string;
@@ -76,6 +86,12 @@ type TableSpec = {
   foreignInserts: (foreign: Chain, users: Users) => Row[];
   /** Own operator_id with a foreign parent; absent when the only parent is the operator. */
   parents?: ParentCase[];
+  /**
+   * Updates of the actor's own row that point an updatable parent column at a
+   * foreign parent (RLS `using` lets the row through, so the triggers and the
+   * composite key answer); absent when no parent column is updatable.
+   */
+  parentUpdates?: ParentUpdateCase[];
   update: Row;
   updateGrant: Grant;
   deleteGrant: Grant;
@@ -173,6 +189,7 @@ const TABLES: TableSpec[] = [
         roles: ["administrador"],
       },
     ],
+    parentUpdates: [{ label: "guide", values: (f) => ({ guide_id: f.guide }), roles: ["administrador"] }],
     update: { capacity: 9 },
     updateGrant: "granted",
     deleteGrant: "not granted",
@@ -221,6 +238,10 @@ const TABLES: TableSpec[] = [
         row: (o, f) => ({ operator_id: o.operatorId, departure_id: o.departure, customer_id: f.customer, people: 1 }),
         roles: ["administrador", "reservas"],
       },
+    ],
+    parentUpdates: [
+      { label: "departure", values: (f) => ({ departure_id: f.departure }), roles: ["administrador", "reservas"] },
+      { label: "customer", values: (f) => ({ customer_id: f.customer }), roles: ["administrador", "reservas"] },
     ],
     update: { people: 2 },
     updateGrant: "granted",
@@ -447,6 +468,20 @@ for (const { actor, foreign: foreignId } of PAIRS) {
           it(`insert with the own operator_id and a foreign ${parent.label} fails with a foreign-key violation`, async () => {
             const codes = parent.roles.includes(actor.role) ? ["23503"] : ["23503", "42501"];
             expectCode(await from(client, spec.schema, spec.table).insert(parent.row(own(), foreign())).select(), codes, `${name} foreign ${parent.label}`);
+            await unchanged();
+          });
+        }
+
+        for (const parent of spec.parentUpdates ?? []) {
+          it(`update of the actor's own row to a foreign ${parent.label} fails with a foreign-key violation`, async () => {
+            const result = await from(client, spec.schema, spec.table)
+              .update(parent.values(foreign()))
+              .eq(spec.key, spec.target(own()))
+              .select(spec.key);
+            if (parent.roles.includes(actor.role)) expectCode(result, ["23503"], `${name} own row to a foreign ${parent.label}`);
+            else expectNoRows(result, `${name} own row to a foreign ${parent.label}`);
+            const row = await must(from(admin, spec.schema, spec.table).select("*").eq(spec.key, spec.target(own())).single());
+            expect(row, `${name} own row changed`).toEqual(before.get(A)?.rows[name]);
             await unchanged();
           });
         }
