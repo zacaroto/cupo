@@ -9,6 +9,7 @@
 import "server-only";
 import { can } from "@cupo/shared/permissions";
 import type { ReservationCreateInput, ReservationStatus } from "@cupo/shared/schemas/reservations";
+import type { DepartureStatus } from "@cupo/shared/schemas/tours";
 import { normalizeLocalTime } from "@cupo/shared/local-date";
 import { createClient } from "@/lib/supabase/server";
 import type { OperatorContext } from "./context";
@@ -103,25 +104,87 @@ export async function listReservations(
   const rows = data.slice(0, RESERVATION_LIST_LIMIT);
   const displays = full ? new Map<string, string>() : await getCustomerDisplays(ctx, rows.map((row) => row.customer_id));
   return {
-    reservations: rows.map((row) => ({
-      id: row.id,
-      code: row.code,
-      status: row.status,
-      people: row.people,
-      hasIncompleteData: row.has_incomplete_data,
-      cancelReason: row.cancel_reason,
-      departureId: row.departure_id,
-      date: row.departure?.date ?? "",
-      startTime: normalizeLocalTime(row.departure?.start_time ?? "") ?? row.departure?.start_time ?? "",
-      tourName: row.departure?.tour?.name ?? null,
-      customerId: row.customer_id,
-      customerName: full ? (row.customer?.name ?? null) : (displays.get(row.customer_id) ?? null),
-      customerContact: full && row.customer ? { email: row.customer.email, phone: row.customer.phone } : null,
-      amount: row.amount
-        ? { totalMinor: row.amount.total_minor, currency: row.amount.currency, overridden: row.amount.amount_overridden }
-        : null,
-    })),
+    reservations: rows.map((row) => toListItem(row, full, displays)),
     hasMore: data.length > RESERVATION_LIST_LIMIT,
+  };
+}
+
+function toListItem(row: ReservationRow, full: boolean, displays: Map<string, string>): ReservationListItem {
+  return {
+    id: row.id,
+    code: row.code,
+    status: row.status,
+    people: row.people,
+    hasIncompleteData: row.has_incomplete_data,
+    cancelReason: row.cancel_reason,
+    departureId: row.departure_id,
+    date: row.departure?.date ?? "",
+    startTime: normalizeLocalTime(row.departure?.start_time ?? "") ?? row.departure?.start_time ?? "",
+    tourName: row.departure?.tour?.name ?? null,
+    customerId: row.customer_id,
+    customerName: full ? (row.customer?.name ?? null) : (displays.get(row.customer_id) ?? null),
+    customerContact: full && row.customer ? { email: row.customer.email, phone: row.customer.phone } : null,
+    amount: row.amount
+      ? { totalMinor: row.amount.total_minor, currency: row.amount.currency, overridden: row.amount.amount_overridden }
+      : null,
+  };
+}
+
+export type ReservationDetail = ReservationListItem & {
+  tourId: string;
+  departureStatus: DepartureStatus;
+  createdAt: string;
+  /** The notes for `notes.read` roles (null when there are none); undefined for everyone else (R11). */
+  notes?: string | null;
+};
+
+type ReservationDetailRow = Omit<ReservationRow, "departure"> & {
+  created_at: string;
+  departure: { date: string; start_time: string; status: DepartureStatus; tour_id: string; tour: { name: string } | null } | null;
+  notes?: { notes: string } | null;
+};
+
+const DETAIL_COLUMNS =
+  "id, code, status, people, has_incomplete_data, cancel_reason, departure_id, customer_id, created_at, " +
+  "departure:tour_departures!reservations_departure_fkey!inner(date, start_time, status, tour_id, tour:tours!tour_departures_tour_fkey(name))";
+const NOTES_COLUMNS = "notes:reservation_notes!reservation_notes_reservation_fkey(notes)";
+
+/**
+ * One reservation of the active operator for the detail page (U10), or null
+ * when it does not exist or belongs to another operator. Customer, amount and
+ * notes follow the same role rules as the list (KTD4, R11).
+ */
+export async function getReservation(ctx: OperatorContext, reservationId: string): Promise<ReservationDetail | null> {
+  const full = hasFullCustomerAccess(ctx);
+  const notes = can(ctx.role, "notes.read");
+  const columns = [
+    DETAIL_COLUMNS,
+    full ? CUSTOMER_COLUMNS : null,
+    can(ctx.role, "amounts.read") ? AMOUNT_COLUMNS : null,
+    notes ? NOTES_COLUMNS : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("reservations")
+    .select(columns)
+    .eq("operator_id", ctx.operator.id)
+    .eq("id", reservationId)
+    .overrideTypes<ReservationDetailRow[], { merge: false }>();
+  if (error) throw error;
+  const [row] = data;
+  if (!row) return null;
+
+  const displays = full ? new Map<string, string>() : await getCustomerDisplays(ctx, [row.customer_id]);
+  return {
+    ...toListItem(row, full, displays),
+    tourId: row.departure?.tour_id ?? "",
+    departureStatus: row.departure?.status ?? "scheduled",
+    createdAt: row.created_at,
+    // update_reservation clears notes to ''; both read as no notes.
+    ...(notes && { notes: row.notes?.notes || null }),
   };
 }
 

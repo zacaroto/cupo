@@ -564,5 +564,88 @@
       "reasonRequired": "Give a reason.",
       "reasonTooLong": "The reason can have up to 500 characters."
     }
+  },
+  "reservationDetail": {
+    "back": "Back to reservations",
+    "title": "Reservation {code}",
+    "details": "Details",
+    "fields": {
+      "tour": "Tour",
+      "departure": "Departure",
+      "customer": "Customer",
+      "people": "People",
+      "status": "Status",
+      "cancelReason": "Cancellation reason",
+      "amount": "Amount",
+      "createdAt": "Created"
+    },
+    "departure": "{date} · {time}",
+    "departureClosed": "departure closed",
+    "notes": "Internal notes",
+    "noNotes": "No notes.",
+    "cancelledNotice": "This reservation is cancelled. It is read-only.",
+    "edit": {
+      "title": "Edit reservation",
+      "description": "Change the people, the time within the same tour, or the notes.",
+      "dateLabel": "Departure date",
+      "showSlots": "Show times",
+      "slot": "Time",
+      "slotCurrent": "{time} · Current",
+      "noSlots": "This tour has no times or departures that day.",
+      "people": "People",
+      "notes": "Internal notes",
+      "notesHint": "Leave empty to clear them. Visible to administration, reservations and accounting; never to the guide.",
+      "submit": "Save changes",
+      "saved": "Changes saved.",
+      "unchanged": "There was nothing to change."
+    },
+    "cancel": {
+      "title": "Cancel reservation",
+      "description": "The seats return to the departure. A cancelled reservation cannot be reactivated."
+    }
+  },
+  "history": {
+    "title": "Change history",
+    "description": "Every change to the reservation and its amount, with who made it. Times in {timezone}.",
+    "empty": "No changes recorded yet.",
+    "action": {
+      "created": "Reservation created",
+      "updated": "Reservation changed",
+      "cancelled": "Reservation cancelled",
+      "deleted": "Reservation deleted"
+    },
+    "actor": {
+      "system": "System",
+      "deleted_user": "Deleted user"
+    },
+    "fields": {
+      "status": "Status",
+      "cancel_reason": "Cancellation reason",
+      "departure_id": "Departure",
+      "people": "People",
+      "customer_id": "Customer",
+      "has_incomplete_data": "Incomplete data",
+      "code": "Code",
+      "channel": "Channel",
+      "external_code": "External code",
+      "total_minor": "Total",
+      "unit_price_minor": "Unit price",
+      "currency": "Currency",
+      "amount_overridden": "Amount set by hand"
+    },
+    "columns": {
+      "field": "Field",
+      "before": "Before",
+      "after": "After"
+    },
+    "values": {
+      "yes": "Yes",
+      "no": "No",
+      "empty": "—",
+      "departure": "{tour} · {date} · {time}",
+      "unknownTour": "Tour",
+      "unknownDeparture": "Departure no longer available",
+      "unknownCustomer": "Customer no longer available"
+    }
   }
 }

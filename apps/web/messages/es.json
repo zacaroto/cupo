@@ -564,5 +564,88 @@
       "reasonRequired": "Indicá el motivo.",
       "reasonTooLong": "El motivo puede tener hasta 500 caracteres."
     }
+  },
+  "reservationDetail": {
+    "back": "Volver a reservas",
+    "title": "Reserva {code}",
+    "details": "Detalle",
+    "fields": {
+      "tour": "Tour",
+      "departure": "Salida",
+      "customer": "Cliente",
+      "people": "Personas",
+      "status": "Estado",
+      "cancelReason": "Motivo de cancelación",
+      "amount": "Monto",
+      "createdAt": "Creada"
+    },
+    "departure": "{date} · {time}",
+    "departureClosed": "salida cerrada",
+    "notes": "Notas internas",
+    "noNotes": "Sin notas.",
+    "cancelledNotice": "Esta reserva está cancelada. Solo se puede consultar.",
+    "edit": {
+      "title": "Editar reserva",
+      "description": "Cambiá las personas, el horario dentro del mismo tour o las notas.",
+      "dateLabel": "Fecha de la salida",
+      "showSlots": "Ver horarios",
+      "slot": "Horario",
+      "slotCurrent": "{time} · Actual",
+      "noSlots": "No hay horarios ni salidas de este tour ese día.",
+      "people": "Personas",
+      "notes": "Notas internas",
+      "notesHint": "Vacías se borran. Las ven administración, reservas y contabilidad; nunca el guía.",
+      "submit": "Guardar cambios",
+      "saved": "Cambios guardados.",
+      "unchanged": "No había nada para cambiar."
+    },
+    "cancel": {
+      "title": "Cancelar reserva",
+      "description": "Los lugares vuelven a la salida. Una reserva cancelada no se puede reactivar."
+    }
+  },
+  "history": {
+    "title": "Historial de cambios",
+    "description": "Cada cambio de la reserva y de su monto, con quién lo hizo. Horas en {timezone}.",
+    "empty": "Todavía no hay cambios registrados.",
+    "action": {
+      "created": "Reserva creada",
+      "updated": "Reserva modificada",
+      "cancelled": "Reserva cancelada",
+      "deleted": "Reserva eliminada"
+    },
+    "actor": {
+      "system": "Sistema",
+      "deleted_user": "Usuario eliminado"
+    },
+    "fields": {
+      "status": "Estado",
+      "cancel_reason": "Motivo de cancelación",
+      "departure_id": "Salida",
+      "people": "Personas",
+      "customer_id": "Cliente",
+      "has_incomplete_data": "Datos incompletos",
+      "code": "Código",
+      "channel": "Canal",
+      "external_code": "Código externo",
+      "total_minor": "Total",
+      "unit_price_minor": "Precio unitario",
+      "currency": "Moneda",
+      "amount_overridden": "Monto ajustado a mano"
+    },
+    "columns": {
+      "field": "Dato",
+      "before": "Antes",
+      "after": "Después"
+    },
+    "values": {
+      "yes": "Sí",
+      "no": "No",
+      "empty": "—",
+      "departure": "{tour} · {date} · {time}",
+      "unknownTour": "Tour",
+      "unknownDeparture": "Salida no disponible",
+      "unknownCustomer": "Cliente no disponible"
+    }
   }
 }

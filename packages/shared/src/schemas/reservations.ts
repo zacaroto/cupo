@@ -141,6 +141,28 @@ export const reservationCancelSchema = z.object({
     .max(CANCEL_REASON_MAX, { error: "validation.reasonTooLong" }),
 });
 
+/**
+ * The detail page's edit (U10): people, a slot of the same tour on `date` (an
+ * existing departure or a schedule time to materialize) and the notes. Empty
+ * notes are `null`, which the action turns into a clear when there were notes.
+ * Whether anything changed, and every state and capacity rule, is decided
+ * after parsing (the action and the database).
+ */
+export const reservationUpdateSchema = z.object({
+  reservationId: id("validation.idInvalid"),
+  date: dateField,
+  slot: z.string({ error: "validation.slotRequired" }).transform((value, ctx) => {
+    const slot = parseSlotValue(value);
+    if (slot === null) {
+      ctx.issues.push({ code: "custom", message: "validation.slotRequired", input: value });
+      return z.NEVER;
+    }
+    return slot;
+  }),
+  people: peopleField,
+  notes: notesField,
+});
+
 /** List filters from the query string; anything invalid falls back to the default. */
 export const reservationFilterSchema = z.object({
   from: z.string().optional().transform((value) => (value && isIsoDate(value) ? value : null)),
@@ -153,3 +175,4 @@ export const reservationFilterSchema = z.object({
 
 export type ReservationCreateInput = z.infer<typeof reservationCreateSchema>;
 export type ReservationCancelInput = z.infer<typeof reservationCancelSchema>;
+export type ReservationUpdateFormInput = z.infer<typeof reservationUpdateSchema>;

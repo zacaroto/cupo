@@ -4,6 +4,7 @@ import {
   reservationCancelSchema,
   reservationCreateSchema,
   reservationFilterSchema,
+  reservationUpdateSchema,
   slotValue,
 } from "./reservations";
 
@@ -117,6 +118,34 @@ describe("reservationCancelSchema", () => {
     expect(issues(reservationCancelSchema.safeParse({ reservationId: "x", reason: "y".repeat(501) }))).toEqual({
       reservationId: "validation.idInvalid",
       reason: "validation.reasonTooLong",
+    });
+  });
+});
+
+describe("reservationUpdateSchema", () => {
+  const edit = { reservationId: CUSTOMER_ID, date: "2026-11-17", slot: `departure:${DEPARTURE_ID}`, people: " 3 ", notes: "  Silla de ruedas " };
+
+  it("parses people, a departure or a schedule time, and trimmed notes", () => {
+    expect(reservationUpdateSchema.parse(edit)).toEqual({
+      reservationId: CUSTOMER_ID,
+      date: "2026-11-17",
+      slot: { departureId: DEPARTURE_ID, startTime: null },
+      people: 3,
+      notes: "Silla de ruedas",
+    });
+    expect(reservationUpdateSchema.parse({ ...edit, slot: "time:09:05", notes: "  " })).toMatchObject({
+      slot: { departureId: null, startTime: "09:05" },
+      notes: null,
+    });
+  });
+
+  it("returns one message key per invalid field", () => {
+    expect(issues(reservationUpdateSchema.safeParse({ reservationId: "x", date: "2026-02-30", slot: "", people: "0", notes: "n".repeat(2001) }))).toEqual({
+      reservationId: "validation.idInvalid",
+      date: "validation.dateInvalid",
+      slot: "validation.slotRequired",
+      people: "validation.peopleInvalid",
+      notes: "validation.notesTooLong",
     });
   });
 });
