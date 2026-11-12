@@ -85,30 +85,34 @@ cupo/
     migrations/               # forward-only, created with `supabase migration new`
     seed.sql                  # operators A, B, C with a local-only guard
     templates/                # invite, magic_link, recovery emails (token-hash links)
-    tests/                    # pgTAP (rls_coverage_test.sql)
+    tests/                    # pgTAP: rls_coverage_test.sql (coverage, hygiene, definer list) + one file per domain
   scripts/
-    seed-users.ts  bootstrap-operator.ts  db-types.ts  lib/local-stack.ts
-  tests/db/                   # Vitest db project: setup.ts, helpers.ts, fixtures.ts, mailpit.ts, *.test.ts
+    seed-users.ts  seed-hosted-dev.ts  bootstrap-operator.ts  seat-drift.ts  db-types.ts  lib/local-stack.ts
+  tests/db/                   # Vitest db project: setup.ts, helpers.ts, fixtures.ts, *.test.ts (tests/db/README.md)
+  docs/
+    plans/                    # the Phase 1 implementation plan
+    solutions/                # learnings: RLS and composite FKs, trigger ownership, migrations, isolation harness
   packages/shared/          # @cupo/shared: framework-free TypeScript, consumed as source (no build)
     package.json  tsconfig.json  eslint.config.mjs  src/index.ts  src/database.types.ts (generated)
-    src/permissions.ts  src/errors.ts  src/schemas/auth.ts
+    src/permissions.ts  src/errors.ts  src/money.ts  src/local-date.ts  src/schemas/*.ts
   apps/web/                 # @cupo/web: the Next.js app
     package.json  next.config.mjs  vercel.json  eslint.config.mjs  postcss.config.mjs  tsconfig.json
     .env.local.example
     messages/es.json  messages/en.json
     src/proxy.ts                         # session refresh + next-intl + optimistic login redirect
     src/i18n/{routing,request,navigation,params}.ts
-    src/lib/{logger,result}.ts
+    src/lib/{logger,result,format}.ts
     src/lib/supabase/{client,server,proxy,admin}.ts
     src/lib/dal/{context,errors,page}.ts # active operator context (the authority), DAL errors
+    src/lib/dal/*.ts                     # domain DAL modules (take ctx; never resolve it)
     src/lib/auth/{confirm,request}.ts
     src/app/globals.css
     src/app/auth/confirm/route.ts        # token-hash confirm route, outside [locale]
     src/app/[locale]/layout.tsx          # root layout (<html lang>); there is no src/app/layout.tsx
     src/app/[locale]/(auth)/             # login, set-password, reset-password, no-access
-    src/app/[locale]/(app)/              # shell layout, home, section pages (placeholders until U4-U9)
+    src/app/[locale]/(app)/              # shell layout, home and the sections: members, guides, tours, departures, customers, reservations, agenda
     src/app/[locale]/[...rest]/page.tsx  # localized 404
-    src/components/{auth,layout}/
+    src/components/{auth,forms,layout,members,reservations}/
 ```
 
 Rules that the tooling enforces:
@@ -236,6 +240,34 @@ with `supabase link --project-ref` inside GitHub Actions.
   `supabase/seed.sql`. Run `npm run db:seed-users` afterwards (the reset drops
   the auth users).
 
+### Adding a table or a function
+
+The isolation suite fails a PR that adds database surface without covering
+it, on purpose. In the same PR:
+
+- **A table in `public` or `audit`**: the template banner rules (RLS,
+  policies `to authenticated`, column-listed grants, `operator_id` with its
+  index, composite foreign keys), then a `TableSpec` entry in
+  `tests/db/isolation-matrix.test.ts` (its foreign-operator inserts, the
+  foreign-parent cases, an update payload inside its update grant, and whether
+  update and delete are granted) and its readers per role in the `VISIBILITY`
+  list of `tests/db/role-matrix.test.ts`. The guard test compares the matrix
+  list with `information_schema.tables`. Tables in `private` are not in the
+  matrix: `private` is not exposed, and pgTAP asserts that its tables grant
+  nothing to `anon` or `authenticated`.
+- **A function in `public`** (an RPC): `security invoker`, the explicit
+  revoke and grant, and an `RpcSpec` in `tests/db/role-matrix.test.ts` naming
+  the callers that may run it; every other caller must get `forbidden` with
+  nothing changed. The guard compares the list with `pg_proc`.
+- **A `security definer` function** (only in `private`): add its name to
+  `definer_functions` in `supabase/tests/rls_coverage_test.sql` with the unit
+  and the reason, and say why in the PR. A definer `before insert` trigger
+  that reads rows by `new.operator_id` must first refuse a session user
+  without the inserting role with the policy's 42501, and must raise the
+  composite foreign key's violation itself when its parent is not found under
+  `new.operator_id`; otherwise its typed errors (or a unique check) become an
+  oracle on another operator's rows (`docs/solutions/database/trigger-ownership.md`).
+
 ### Seed and seed users
 
 `supabase/seed.sql` inserts operators A, B and C with fixed uuids (mirrored in
@@ -264,7 +296,32 @@ rows carry `actor_source = 'system'`. The script refuses any non-local URL.
   it, that no `security definer` function lives in `public` or `audit`, that
   every function in `private` pins `search_path`, that `anon` can execute
   nothing in `public` or `audit`, and that no `admin_*` function is executable
-  by `authenticated`.
+  by `authenticated`. Since U8 it also asserts that every table except
+  `operators` and `profiles` carries `operator_id`, that every foreign key
+  between business tables is composite with `operator_id`, that every policy
+  is `to authenticated`, that `private` tables grant nothing to `anon` or
+  `authenticated`, that every function in `public` and `audit` has an explicit
+  ACL without a grant to `PUBLIC`, and that the `security definer` functions
+  in `private` are exactly the enumerated list (a new one fails until it is
+  added; a removed one fails until it is taken off). The other files in
+  `supabase/tests/` hold per-domain checks (customers, guides, tours,
+  reservations, guide agenda).
+- The Phase 1 exit condition (R30) is `tests/db/isolation-matrix.test.ts`: for
+  every table in `public` and `audit` and every actor (a reservas of A, an
+  administrador of A and B, an administrador of A) against each operator the
+  actor does not belong to, select returns only the actor's operators' rows,
+  an insert with a foreign `operator_id` fails with 42501, an insert with the
+  actor's own `operator_id` and a foreign parent fails with 23503, and update
+  and delete of a foreign row affect zero rows (or fail with 42501 where the
+  table grants neither), with every foreign row and row count re-read with
+  the secret key afterwards. An update of the actor's own row that points a
+  parent column (a reservation's departure or customer, a departure's guide)
+  at a foreign parent fails with 23503. `operators` and `profiles` have their own cells,
+  `anon` reads and writes nothing, and a guard fails when a table is missing
+  from the matrix. `tests/db/role-matrix.test.ts` covers R11 per role of A
+  and every RPC × caller cell (the four roles, `anon` and the secret key):
+  callers outside the allowed set get `forbidden` and nothing changes, and
+  another operator's ids answer `not_found`.
 - `npm run test:db` runs the Vitest `db` project (`tests/db/**/*.test.ts`,
   files in series). `tests/db/setup.ts` maps `supabase status -o env` to the app
   variable names once per process and loads the seed users; `tests/db/helpers.ts`
@@ -370,6 +427,31 @@ write path, and `admin_seat_drift()` lists any departure where it does not.
    script on the same targets); it locks the drifting departures, rewrites each
    counter and audits every rewrite in `audit.events` with source `app`.
 4. Run the check again and expect zero rows.
+
+### Fail-ability check for the isolation suite
+
+A suite that cannot fail proves nothing. Run this whenever the matrix or its
+helpers change (it was last run for U8; the evidence is in the U8 PR):
+
+1. `npx supabase db reset && npm run db:seed-users`.
+2. Open a leak on one table through the local database only (never commit
+   it):
+   ```bash
+   docker exec -i supabase_db_lnyjvnqhpwktxptxopvy psql -U postgres -c \
+     "create policy \"TEMPORARY failability check\" on public.tours for select to authenticated using (true);"
+   ```
+3. `npx vitest run --project db tests/db/isolation-matrix.test.ts`: the
+   `public.tours > select returns only rows of the actor's operators` cell
+   must fail for every actor and foreign operator pair (5 failures); the
+   other cells stay green.
+4. Revert with `drop policy "TEMPORARY failability check" on public.tours;`
+   (or `npx supabase db reset`) and run the file again: all green.
+
+The same idea works for the other guards: a `security definer` function
+created in `private` or `public` makes `npx supabase test db` fail and name it;
+a new table in `public` makes the matrix guard fail; a new function in
+`public` makes the RPC guard of `role-matrix.test.ts` fail. Finish with a
+`db reset`.
 
 ### Bootstrap-operator runbook
 

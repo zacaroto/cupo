@@ -2,7 +2,8 @@
 // U10 test scenarios; R23, R28, R29; KTD4, KTD6, KTD9): the history DAL over
 // audit.events (administrador only, per operator, actors resolved through
 // profiles, "Sistema" and "Usuario eliminado"), the detail read by role, and
-// the edit and cancel actions through the real server code.
+// the edit and cancel actions through the real server code. U8 audits
+// reservation_notes, so notes changes are part of the history too.
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { addDays, weekdayOf } from "@cupo/shared/local-date";
 import { FUTURE, BookingFixtures, auditMark, book, heldOn, reservationRow, seatsOf } from "./booking.ts";
@@ -139,6 +140,48 @@ describe("change history (R28, R29, KTD6)", () => {
     expect(created.changes.map((change) => change.field)).not.toEqual(expect.arrayContaining(["updated_at", "created_at", "operator_id", "id"]));
     // Entries are newest first; timestamps are the database's.
     expect(Date.parse(cancelled.at)).toBeGreaterThan(Date.parse(created.at));
+  });
+
+  it("notes changes join the history (U8): the create's notes, a notes-only edit and a cleared note, each with its actor", async () => {
+    await signIn(seedUser("reservasA"), A);
+    const id = await booked(await clientFor("reservasA"), {
+      operator_id: A,
+      departure_id: departure,
+      customer_id: customer,
+      people: 1,
+      notes: "Vegetariana",
+    });
+    const edit = (notes: string) => updateReservationAction(IDLE, form({ reservationId: id, date, slot: `departure:${departure}`, people: "1", notes }));
+    expect(await edit("Vegetariana, sin gluten")).toEqual({ status: "ok", data: { changed: true } });
+    expect(await edit("")).toEqual({ status: "ok", data: { changed: true } });
+
+    const { data: raw } = await (await clientFor("adminA")).schema("audit").from("events").select("table_name, op, actor_source").eq("record_id", id).order("id");
+    expect(raw?.filter((row) => row.table_name === "reservation_notes").map((row) => `${row.op} ${row.actor_source}`)).toEqual([
+      "insert jwt",
+      "update jwt",
+      "update jwt",
+    ]);
+
+    await signIn(seedUser("adminA"), A);
+    const history = await getReservationHistory(await requireOperatorContext("audit.read"), id);
+    expect(history.map((entry) => entry.action)).toEqual(["updated", "updated", "created"]);
+    for (const entry of history) expect(entry.actor).toEqual({ kind: "user", name: "Reservas A" });
+    const [cleared, changed, created] = history;
+    expect(cleared.changes).toEqual([
+      { subject: "notes", field: "notes", before: { kind: "text", value: "Vegetariana, sin gluten" }, after: { kind: "empty" } },
+    ]);
+    expect(changed.changes).toEqual([
+      { subject: "notes", field: "notes", before: { kind: "text", value: "Vegetariana" }, after: { kind: "text", value: "Vegetariana, sin gluten" } },
+    ]);
+    expect(created.changes.map((change) => change.subject)).toEqual([
+      ...created.changes.filter((change) => change.subject === "reservation").map(() => "reservation"),
+      "notes",
+      ...created.changes.filter((change) => change.subject === "amount").map(() => "amount"),
+    ]);
+    expect(created.changes.find((change) => change.subject === "notes")?.after).toEqual({ kind: "text", value: "Vegetariana" });
+    // Only administradores read the history, notes included.
+    expectZeroRows(await (await clientFor("reservasA")).schema("audit").from("events").select("id").eq("record_id", id));
+    expectZeroRows(await (await clientFor("contabilidadA")).schema("audit").from("events").select("id").eq("record_id", id));
   });
 
   it("reservas gets zero rows from audit.events; an administrador of B gets zero rows for A's reservation", async () => {

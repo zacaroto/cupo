@@ -65,12 +65,15 @@ local Supabase stack. Files run in series (`--no-file-parallelism`).
   (materialization, new or existing customer, notes, found-checks, roles),
   the state machine through every write path (AE12), `update_reservation`,
   `has_incomplete_data` and its audit rows, amounts (AE4, recompute,
-  override), notes, AE3 and AE11, reads by role (AE5, the guía policy), and
-  the reservation actions and list DAL through the real server code.
+  override), notes (frozen on a cancelled reservation for every write path,
+  and the 42501 guard before the cancelled check), AE3 and AE11, reads by role
+  (AE5, the guía policy), and the reservation actions and list DAL through the
+  real server code.
 - `history.test.ts` covers U10: the reservation history through the audit
   DAL (create, edit and cancel as grouped entries with the actor, departure
   and customer labels and only changed keys; "Sistema" for secret-key writes;
-  "Usuario eliminado" after the actor's user is deleted), zero `audit.events`
+  "Usuario eliminado" after the actor's user is deleted; notes changes since
+  U8 audits `reservation_notes`), zero `audit.events`
   rows for reservas, contabilidad and an administrador of B, the detail read
   by role, and the edit and cancel actions (people, notes, slot moves,
   unchanged edits that write nothing, capacity and validation states that keep
@@ -82,6 +85,26 @@ local Supabase stack. Files run in series (`--no-file-parallelism`).
   membership and profile), unassigning a departure, the forbidden state of
   every other section and action, and the agenda DAL (seeded guía, and a guía
   with no departures gets an empty agenda).
+- `isolation-matrix.test.ts` is the Phase 1 exit condition (U8, R30): a
+  table-driven matrix over every table in `public` and `audit` × three actors
+  (reservas of A, administrador of A and B, administrador of A) × every
+  operator the actor does not belong to. Cells: select returns only own
+  operators' rows, insert with a foreign `operator_id` is 42501, insert with
+  the own `operator_id` and a foreign parent is 23503, update and delete of a
+  foreign row affect zero rows (42501 where ungranted), an update of the
+  actor's own row to a foreign parent (reservation departure or customer,
+  departure guide) is 23503, and every foreign row
+  and count is unchanged afterwards. The foreign chains carry an archived
+  tour, an inactive guide and a reservation with notes, so a trigger that
+  answers before RLS shows up. `operators` and `profiles` have their own
+  cells, `anon` gets 42501 everywhere, and a guard compares the list with
+  `information_schema.tables`.
+- `role-matrix.test.ts` covers U8 approach step 2: R11 visibility of A's
+  fixture rows for each role of A, every RPC × caller cell (four roles,
+  `anon`, the secret key; refused callers get `forbidden` and nothing
+  changes), a guard against `pg_proc`, and another operator's ids answering
+  `not_found` for `cancel_departure`, `update_reservation` and
+  `create_reservation`.
 - `foundation.test.ts` covers the U2 scenarios: AE2 cross-operator reads and
   writes, operator column grants, admin rpc privileges, AE6 last administrador,
   inactive operators, timezone validation, profiles visibility, password sign-in

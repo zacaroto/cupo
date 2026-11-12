@@ -382,6 +382,47 @@ describe("notes (R11)", () => {
   });
 });
 
+describe("notes of a cancelled reservation (U8, R23, KTD5)", () => {
+  it("are frozen on every write path: direct insert and update by reservas and administrador, update_reservation and the secret key", async () => {
+    const tour = await fx.tour(A);
+    const departure = await fx.departure(A, tour);
+    const customer = await fx.customer(A);
+    const reservas = await clientFor("reservasA");
+    const withNotes = await booked(reservas, { operator_id: A, departure_id: departure, customer_id: customer, people: 1, notes: "Antes" });
+    const without = await booked(reservas, { operator_id: A, departure_id: departure, customer_id: customer, people: 1 });
+    for (const { id } of [withNotes, without]) {
+      expect((await reservas.from("reservations").update({ status: "cancelled", cancel_reason: "No viaja" }).eq("id", id)).error).toBeNull();
+    }
+
+    const mark = await auditMark();
+    for (const client of [reservas, await clientFor("adminA"), admin]) {
+      expectTypedError(await client.from("reservation_notes").update({ notes: "Después" }).eq("reservation_id", withNotes.id), "forbidden_transition");
+      expectTypedError(
+        await client.from("reservation_notes").insert({ operator_id: A, reservation_id: without.id, notes: "Nueva" }),
+        "forbidden_transition",
+      );
+    }
+    expectTypedError(await reservas.rpc("update_reservation", { reservation_id: withNotes.id, notes: "Después" }), "forbidden_transition");
+    expectTypedError(await reservas.rpc("update_reservation", { reservation_id: without.id, notes: "Nueva" }), "forbidden_transition");
+
+    const { data } = await admin.from("reservation_notes").select("reservation_id, notes").in("reservation_id", [withNotes.id, without.id]);
+    expect(data).toEqual([{ reservation_id: withNotes.id, notes: "Antes" }]);
+    expect(await auditMark()).toBe(mark);
+  });
+
+  it("a user without a booking role in the note's operator gets the policy's 42501 before the cancelled check (no cross-operator leak)", async () => {
+    const tourB = await fx.tour(B, { currency: "MXN" });
+    const departureB = await fx.departure(B, tourB);
+    const { id } = await booked(await clientFor("reservasB"), { operator_id: B, departure_id: departureB, customer_id: await fx.customer(B), people: 1 });
+    expect((await admin.from("reservations").update({ status: "cancelled", cancel_reason: "No viaja" }).eq("id", id)).error).toBeNull();
+    expectSqlState(await (await clientFor("reservasA")).from("reservation_notes").insert({ operator_id: B, reservation_id: id, notes: "x" }), "42501");
+    expectSqlState(await (await clientFor("contabilidadA")).from("reservation_notes").insert({ operator_id: A, reservation_id: id, notes: "x" }), "42501");
+    // Own operator with B's reservation id: not found under A, so the composite foreign key answers.
+    expectSqlState(await (await clientFor("reservasA")).from("reservation_notes").insert({ operator_id: A, reservation_id: id, notes: "x" }), "23503");
+    expect((await admin.from("reservation_notes").select("reservation_id").eq("reservation_id", id)).data).toEqual([]);
+  });
+});
+
 describe("cross-operator writes (AE3, AE11)", () => {
   it("covers AE3: reservas of A inserting with operator_id B fails with a policy violation and no row exists", async () => {
     const tourB = await fx.tour(B, { currency: "MXN" });
